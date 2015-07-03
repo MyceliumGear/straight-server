@@ -1,9 +1,10 @@
 require 'spec_helper'
+require_relative '../../lib/straight-server/orders_controller'
 
 RSpec.describe StraightServer::OrdersController do
 
   before(:each) do
-    DB.run("DELETE FROM orders")
+    StraightServer.db_connection.run("DELETE FROM orders")
     @gateway = gateway = StraightServer::Gateway.find_by_id(2)
     allow(gateway).to receive_message_chain("address_provider.takes_fees?").and_return(false)
     allow(gateway).to receive_message_chain("address_provider.new_address").and_return("address#{gateway.last_keychain_id+1}")

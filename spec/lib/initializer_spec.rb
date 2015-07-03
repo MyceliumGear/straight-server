@@ -3,11 +3,6 @@ require_relative '../../lib/straight-server'
 
 RSpec.describe StraightServer::Initializer do
 
-  class StraightServer::TestInitializerClass
-    include StraightServer::Initializer
-    include StraightServer::Initializer::ConfigDir
-  end
-
   before(:each) do
     # redefining Kernel #puts and #print, to get rid of outputs/noise while running specs
     module Kernel 
@@ -19,7 +14,7 @@ RSpec.describe StraightServer::Initializer do
     remove_tmp_dir
     @templates_dir = File.expand_path('../../templates', File.dirname(__FILE__))
     ENV['HOME']   = File.expand_path('../tmp', File.dirname(__FILE__))
-    @initializer = StraightServer::TestInitializerClass.new
+    @initializer = StraightServer::Initializer.new
     StraightServer::Initializer::ConfigDir.set!
   end
 
@@ -55,13 +50,14 @@ RSpec.describe StraightServer::Initializer do
   end
 
   it "connects to the database" do
-    StraightServer::Config.db = { 
+    current_connection = StraightServer.db_connection
+    StraightServer::Config.db = {
       adapter: 'sqlite',
-      name: 'straight.db', 
+      name: '',
     }
-    create_config_files
     @initializer.connect_to_db
     expect(StraightServer.db_connection.test_connection).to be true
+    StraightServer.db_connection = current_connection
   end
 
   it "creates logger" do

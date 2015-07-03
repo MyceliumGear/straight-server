@@ -48,7 +48,7 @@ insight_test_url: "https://test-insight.bitpay.com"
   
 db:
   adapter: sqlite
-  name: straight.db
+  name: ''
 
 redis:
   host: localhost

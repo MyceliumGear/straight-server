@@ -5,7 +5,7 @@ RSpec.describe StraightServer::Order do
 
   before(:each) do
     # clean the database
-    DB.run("DELETE FROM orders")
+    StraightServer.db_connection.run("DELETE FROM orders")
     @gateway = double("Straight Gateway mock")
     allow(@gateway).to receive(:id).and_return(1)
     allow(@gateway).to receive(:active).and_return(true)
@@ -100,15 +100,15 @@ RSpec.describe StraightServer::Order do
   describe "DB interaction" do
 
     it "saves a new order into the database" do
-      expect(DB[:orders][:keychain_id => @order.id]).not_to be_nil
+      expect(StraightServer.db_connection[:orders][:keychain_id => @order.id]).not_to be_nil
     end
 
     it "updates an existing order" do
       allow(@order).to receive(:gateway).and_return(@gateway)
-      expect(DB[:orders][:keychain_id => @order.id][:status]).to eq(0)
+      expect(StraightServer.db_connection[:orders][:keychain_id => @order.id][:status]).to eq(0)
       @order.status = 1
       @order.save
-      expect(DB[:orders][:keychain_id => @order.id][:status]).to eq(1)
+      expect(StraightServer.db_connection[:orders][:keychain_id => @order.id][:status]).to eq(1)
     end
 
     it "finds first order in the database by id" do

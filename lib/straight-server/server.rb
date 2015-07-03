@@ -1,18 +1,19 @@
+require_relative 'orders_controller'
+
 module StraightServer
   class Server < Goliath::API
 
     use Goliath::Rack::Params
-    include StraightServer::Initializer
     Faye::WebSocket.load_adapter('goliath')
 
     def initialize
       super
-      prepare
+      @initializer = Initializer.new
+      @initializer.prepare
       StraightServer.logger.info "starting Straight Server v #{StraightServer::VERSION}"
-      require_relative 'order'
-      require_relative 'gateway'
-      load_addons
-      resume_tracking_active_orders!
+      @initializer.load_addons
+      @initializer.initialize_routes
+      @initializer.resume_tracking_active_orders!
     end
 
     def options_parser(opts, options)
@@ -42,7 +43,8 @@ module StraightServer
         begin
           return process_request(env)
         rescue Sequel::DatabaseDisconnectError
-          connect_to_db
+          StraightServer.logger.info "Sequel::DatabaseDisconnectError, reconnecting"
+          @initializer.connect_to_db
           return process_request(env)
         end
 
@@ -67,7 +69,7 @@ module StraightServer
         end
       end
 
-      @routes.each do |path, action| # path is a regexp
+      @initializer.routes.each do |path, action| # path is a regexp
         return action.call(env) if env['REQUEST_PATH'] =~ path
       end
       # no block was called, means no route matched. Let's render 404

@@ -578,34 +578,33 @@ module StraightServer
     # the order in which gateways follow in the config file is important.
     @@gateways = []
 
-    # Create instances of Gateway by reading attributes from Config
-    i = 0
-    StraightServer::Config.gateways.each do |name, attrs|
-      i += 1
-      gateway = self.new
-      gateway.pubkey                         = attrs['pubkey']
-      gateway.test_pubkey                    = attrs['test_pubkey']
-      gateway.confirmations_required         = attrs['confirmations_required'].to_i
-      gateway.order_class                    = attrs['order_class']
-      gateway.secret                         = attrs['secret']
-      gateway.check_signature                = attrs['check_signature']
-      gateway.callback_url                   = attrs['callback_url']
-      gateway.default_currency               = attrs['default_currency']
-      gateway.orders_expiration_period       = attrs['orders_expiration_period']
-      gateway.active                         = attrs['active']
-      gateway.address_provider               = attrs['address_provider'] || "Bip32"
-      gateway.address_derivation_scheme      = attrs['address_derivation_scheme']
-      gateway.test_mode                      = attrs['test_mode'] || false
-      gateway.name                     = name
-      gateway.id                       = i
-      gateway.exchange_rate_adapter_names = attrs['exchange_rate_adapters']
-      gateway.validate_config
-      gateway.initialize_exchange_rate_adapters
-      gateway.load_last_keychain_id!
-      @@websockets[i] = {}
-      @@gateways << gateway
-    end if StraightServer::Config.gateways
-
+    def self.load_from_config
+      StraightServer::Config.gateways.each_with_index do |(name, attrs), i|
+        i += 1
+        gateway                             = self.new
+        gateway.name                        = name
+        gateway.id                          = i
+        gateway.pubkey                      = attrs['pubkey']
+        gateway.test_pubkey                 = attrs['test_pubkey']
+        gateway.confirmations_required      = attrs['confirmations_required'].to_i
+        gateway.order_class                 = attrs['order_class']
+        gateway.secret                      = attrs['secret']
+        gateway.check_signature             = attrs['check_signature']
+        gateway.callback_url                = attrs['callback_url']
+        gateway.default_currency            = attrs['default_currency']
+        gateway.orders_expiration_period    = attrs['orders_expiration_period']
+        gateway.active                      = attrs['active']
+        gateway.address_provider            = attrs['address_provider'] || 'Bip32'
+        gateway.address_derivation_scheme   = attrs['address_derivation_scheme']
+        gateway.test_mode                   = attrs['test_mode'] || false
+        gateway.exchange_rate_adapter_names = attrs['exchange_rate_adapters']
+        gateway.validate_config
+        gateway.initialize_exchange_rate_adapters
+        gateway.load_last_keychain_id!
+        @@websockets[i] = {}
+        @@gateways << gateway
+      end if StraightServer::Config.gateways
+    end
   end
 
   # It may not be a perfect way to implement such a thing, but it gives enough flexibility to people

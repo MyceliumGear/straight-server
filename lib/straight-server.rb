@@ -1,13 +1,14 @@
 require 'yaml'
 require 'json'
-require 'sequel'
-require 'straight'
-require 'logmaster'
 require 'openssl'
 require 'base64'
 require 'net/http'
-require 'redis'
 require 'faye/websocket'
+require 'redis'
+require 'sequel'
+require 'logmaster'
+require 'straight'
+
 Sequel.extension :migration
 
 module StraightServer
@@ -27,4 +28,3 @@ require_relative 'straight-server/random_string'
 require_relative 'straight-server/config'
 require_relative 'straight-server/initializer'
 require_relative 'straight-server/thread'
-require_relative 'straight-server/orders_controller'
