@@ -88,10 +88,10 @@ blockchain_adapters:
   # - InsightAdapter # uses Straight::Blockchain::InsightAdapter
   # - MyCustomClass::MyCustomBlockchainAdapter
 
-# If Insight adapter set, necessary to provide url for it.
-# insight_url: "https://localhost/api"
-# It's possible to set url for TESTNET
-# insight_test_url: "https://test.localhost/api"
+# If Insight adapter is enabled, it is necessary to provide a url for it.
+#   insight_url: "https://localhost/api"
+# You can also set a testnet insight url to use:
+#   insight_test_url: "https://test.localhost/api"
 
 logmaster:
   log_level: INFO # Wise to change to WARN for production
