@@ -9,13 +9,17 @@ module StraightServer
 
     module ConfigDir
 
+      @@config_dir = nil
+
       # Determine config dir or set default. Useful when we want to
       # have different settings for production or staging or development environments.
       def self.set!(path=nil)
+        return if @@config_dir && path.nil?
         @@config_dir = path and return if path
         @@config_dir = ENV['HOME'] + '/.straight'
         ARGV.each do |a|
           # FIXME: = can be space; space can absent in the short version
+          # FIXME: what if it's an argument for a parent project, where straight-server is just a library?
           if a =~ /\A--config-dir=.+/
             @@config_dir = File.expand_path(a.sub('--config-dir=', ''))
             break

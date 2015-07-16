@@ -1,0 +1,12 @@
+benchmark
+examples
+pkg
+spec
+.document
+.travis.yml
+Gemfile.travis
+.rspec
+.git*
+README*
+LICENSE*
+.idea
