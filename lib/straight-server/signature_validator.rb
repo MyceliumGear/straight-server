@@ -71,7 +71,7 @@ module StraightServer
       Base64.strict_encode64 OpenSSL::HMAC.digest(sha512, secret.to_s, request)
     end
 
-    # Some dumb libraries cannot into binary strings
+    # Some dumb libraries cannot convert into binary strings
     def self.signature2(nonce:, body:, method:, request_uri:, secret:)
       sha512  = OpenSSL::Digest::SHA512.new
       request = "#{method.to_s.upcase}#{request_uri}#{sha512.hexdigest("#{nonce}#{body}")}"

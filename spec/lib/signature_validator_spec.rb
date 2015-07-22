@@ -77,7 +77,7 @@ RSpec.describe StraightServer::SignatureValidator do
   end
 
   it 'raises exceptions if invalid' do
-    @validator                         = described_class.new(
+    @validator = described_class.new(
       Struct.new(:id, :secret).new(3, 'abc'),
       {
         'HTTP_X_NONCE'   => '1',
