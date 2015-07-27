@@ -131,10 +131,11 @@ module StraightServer
       require_relative 'logger'
       StraightServer.logger = StraightServer::Logger.new(
         log_level:       ::Logger.const_get(Config.logmaster['log_level'].upcase),
-        file:            ConfigDir.path + '/' + Config.logmaster['file'],
+        file:            Config.logmaster['file'] && File.absolute_path(Config.logmaster['file'], ConfigDir.path),
         raise_exception: Config.logmaster['raise_exception'],
         name:            Config.logmaster['name'],
-        email_config:    Config.logmaster['email_config']
+        email_config:    Config.logmaster['email_config'],
+        logstash_config: Config.logmaster['logstash_config'],
       )
     end
 

@@ -2,11 +2,7 @@
 
 require 'irb'
 require_relative '../lib/straight-server'
-include StraightServer::Initializer
-prepare
-
-require_relative '../lib/straight-server/order'
-require_relative '../lib/straight-server/gateway'
+StraightServer::Initializer.new.prepare
 
 ARGV.clear
 IRB.start
