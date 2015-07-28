@@ -129,7 +129,7 @@ module StraightServer
       # TODO: logging to STDOUT by default
       return unless Config.logmaster
       require_relative 'logger'
-      StraightServer.logger = StraightServer::Logger.new(
+      Straight.logger = StraightServer.logger = StraightServer::Logger.new(
         log_level:       ::Logger.const_get(Config.logmaster['log_level'].upcase),
         file:            Config.logmaster['file'] && File.absolute_path(Config.logmaster['file'], ConfigDir.path),
         raise_exception: Config.logmaster['raise_exception'],
