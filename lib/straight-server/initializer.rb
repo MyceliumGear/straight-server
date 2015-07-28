@@ -197,7 +197,9 @@ module StraightServer
         else
           StraightServer.logger.info "Resuming tracking of order #{order.id}, current status is #{order.status}, time before expiration: #{order.time_left_before_expiration} seconds."
           StraightServer::Thread.new do
-            order.start_periodic_status_check
+            StraightServer.logger.watch_exceptions do
+              order.start_periodic_status_check
+            end
           end
         end
       end
