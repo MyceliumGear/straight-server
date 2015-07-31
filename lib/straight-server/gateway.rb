@@ -136,22 +136,24 @@ module StraightServer
       
       attrs[:keychain_id] = nil if attrs[:keychain_id] == ''
 
-        order = new_order(
-          amount:           (attrs[:amount] && attrs[:amount].to_f),
-          keychain_id:      attrs[:keychain_id] || get_next_last_keychain_id,
-          currency:         attrs[:currency],
-          btc_denomination: attrs[:btc_denomination]
-        )
-        order.id            = attrs[:id].to_i       if attrs[:id]
-        order.data          = attrs[:data]          if attrs[:data]
-        order.callback_data = attrs[:callback_data] if attrs[:callback_data]
-        order.title         = attrs[:title]         if attrs[:title]
-        order.callback_url  = attrs[:callback_url]  if attrs[:callback_url]
-        order.gateway       = self
-        order.test_mode     = test_mode
-        order.description   = attrs[:description]
-        order.reused        = reused_order.reused + 1 if reused_order
-        order.save
+
+      order = new_order(
+        amount:           (attrs[:amount] && attrs[:amount].to_f),
+        keychain_id:      attrs[:keychain_id] || get_next_last_keychain_id,
+        currency:         attrs[:currency],
+        btc_denomination: attrs[:btc_denomination]
+      )
+
+      order.id            = attrs[:id].to_i       if attrs[:id]
+      order.data          = attrs[:data]          if attrs[:data]
+      order.callback_data = attrs[:callback_data] if attrs[:callback_data]
+      order.title         = attrs[:title]         if attrs[:title]
+      order.callback_url  = attrs[:callback_url]  if attrs[:callback_url]
+      order.gateway       = self
+      order.test_mode     = test_mode
+      order.description   = attrs[:description]
+      order.reused        = reused_order.reused + 1 if reused_order
+      order.save
 
       self.update_last_keychain_id(attrs[:keychain_id]) unless order.reused > 0
       self.save
@@ -160,8 +162,7 @@ module StraightServer
     end
 
     def get_next_last_keychain_id
-      return self.test_last_keychain_id + 1 if self.test_mode
-      self.last_keychain_id + 1
+      self.test_mode ? self.test_last_keychain_id + 1 : self.last_keychain_id + 1
     end
 
     # TODO: make it pretty
