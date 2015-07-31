@@ -76,12 +76,14 @@ module StraightServer
     end
 
     def to_h
-      super.merge({ id: id,
-                    payment_id: payment_id,
-                    amount_in_btc: amount_in_btc(as: :string),
-                    amount_paid_in_btc: amount_in_btc(field: amount_paid,as: :string),
-                    keychain_id: keychain_id,
-                    last_keychain_id: self.gateway.last_keychain_id })
+      super.merge({
+        id: id,
+        payment_id: payment_id,
+        amount_in_btc: amount_in_btc(as: :string),
+        amount_paid_in_btc: amount_in_btc(field: amount_paid,as: :string),
+        keychain_id: keychain_id,
+        last_keychain_id: (self.gateway.test_mode ? self.gateway.test_last_keychain_id : self.gateway.last_keychain_id)
+      })
     end
 
     def to_json

@@ -10,6 +10,7 @@ RSpec.describe StraightServer::Order do
     allow(@gateway).to receive(:id).and_return(1)
     allow(@gateway).to receive(:active).and_return(true)
     allow(@gateway).to receive(:order_status_changed)
+    allow(@gateway).to receive(:test_mode).and_return(false)
     allow(@gateway).to receive(:save)
     allow(@gateway).to receive(:increment_order_counter!)
     allow(@gateway).to receive(:current_exchange_rate).and_return(111)
@@ -78,6 +79,13 @@ RSpec.describe StraightServer::Order do
   it "returns last_keychain_id for the gateway along with other order data" do
     order = create(:order, gateway_id: @gateway.id)
     expect(order.to_h).to include(keychain_id: order.keychain_id, last_keychain_id: @gateway.last_keychain_id)
+  end
+
+  it "returns test_last_keychain_id (as last_keychain_id) for the gateway in test mode" do
+    allow(@gateway).to receive(:test_mode).and_return(true)
+    allow(@gateway).to receive(:test_last_keychain_id).and_return(123)
+    order = create(:order, gateway_id: @gateway.id)
+    expect(order.to_h[:last_keychain_id]).to eq(123)
   end
 
   it 'is cancelable only while new' do

@@ -164,7 +164,7 @@ module StraightServer
       self.last_keychain_id + 1
     end
 
-    # TODO: make it preaty
+    # TODO: make it pretty
     def update_last_keychain_id(new_value=nil)
       if self.test_mode
         new_value ? self.test_last_keychain_id = new_value : self.test_last_keychain_id += 1
