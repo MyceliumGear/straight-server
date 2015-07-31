@@ -76,6 +76,7 @@ Gem::Specification.new do |s|
     "lib/straight-server/utils/hash_string_to_sym_keys.rb",
     "lib/tasks/db.rake",
     "spec/.straight/config.yml",
+    "spec/.straight/default_test_last_keychain_id",
     "spec/.straight/server_secret",
     "spec/factories.rb",
     "spec/fixtures/addons.yml",
@@ -96,7 +97,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://github.com/snitko/straight-server"
   s.licenses = ["MIT"]
-  s.rubygems_version = "2.4.3"
+  s.rubygems_version = "2.4.5"
   s.summary = "A Bitcoin payment gateway server: a state server for the stateless Straight library"
 
   if s.respond_to? :specification_version then
