@@ -47,11 +47,11 @@ module StraightServer
           currency:         @params['currency'],
           btc_denomination: @params['btc_denomination'],
           keychain_id:      @params['keychain_id'],
-          signature:        @params['signature'],
           callback_data:    @params['callback_data'],
           data:             @params['data'],
           description:      @params['description']
         }
+
         order = @gateway.create_order(order_data)
         StraightServer::Thread.new(label: order.payment_id) do
           # Because this is a new thread, we have to wrap the code inside in #watch_exceptions
