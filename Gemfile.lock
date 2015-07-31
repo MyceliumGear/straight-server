@@ -120,7 +120,7 @@ GEM
     rspec-support (3.2.2)
     ruby-hmac (0.4.0)
     safe_yaml (1.0.4)
-    satoshi-unit (0.1.7)
+    satoshi-unit (0.1.8)
     sequel (4.24.0)
     sqlite3 (1.3.10)
     straight (1.0.0)
@@ -157,7 +157,7 @@ DEPENDENCIES
   redis!
   rspec
   ruby-hmac!
-  satoshi-unit!
+  satoshi-unit (>= 0.1.8)!
   sequel!
   sqlite3
   straight (= 1.0.0)!

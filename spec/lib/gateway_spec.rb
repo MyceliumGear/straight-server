@@ -127,8 +127,8 @@ RSpec.describe StraightServer::Gateway do
     end
 
     it "sends a request to the callback_url and saves response" do
-      stub_request(:get, 'http://localhost:3001/payment-callback?address=address_1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1').
-        with(headers: {'X-Signature' => 'waGfkiy5VdiAjOfzMXp4ShRF5FaOy7BfIKWzryKhNKVWdCToqTC2vt9aE/FNqc0mjVqAh3uQBfyRdC1YYPFr6g=='}).
+      stub_request(:get, 'http://localhost:3001/payment-callback?address=address_1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1').
+        with(headers: {'X-Signature' => 'u7DrzCaVirO1gehac9Fvkh4bMfR5lTn8FI8lHOvZzuEvHEGJrdFHTm6k6Q+fpTuszXG0ftKBc4a1xclpZjpTHA=='}).
         to_return(status: 200, body: 'okay')
       expect(@gateway).to receive(:sleep).exactly(0).times
       @gateway.order_status_changed(@order)
@@ -136,16 +136,16 @@ RSpec.describe StraightServer::Gateway do
     end
 
     it "keeps sending request according to the callback schedule if there's an error" do
-      stub_request(:get, 'http://localhost:3001/payment-callback?address=address_1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1').
-        with(headers: {'X-Signature' => 'waGfkiy5VdiAjOfzMXp4ShRF5FaOy7BfIKWzryKhNKVWdCToqTC2vt9aE/FNqc0mjVqAh3uQBfyRdC1YYPFr6g=='}).
+      stub_request(:get, 'http://localhost:3001/payment-callback?address=address_1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1').
+        with(headers: {'X-Signature' => 'u7DrzCaVirO1gehac9Fvkh4bMfR5lTn8FI8lHOvZzuEvHEGJrdFHTm6k6Q+fpTuszXG0ftKBc4a1xclpZjpTHA=='}).
         to_return(status: 404, body: '')
       expect(@gateway).to receive(:sleep).exactly(10).times
       @gateway.order_status_changed(@order)
     end
 
     it "receives random data in :data params and sends it back in a callback request" do
-      uri = "/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.&status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=1&callback_data=so%3Fme+ran%26dom+data"
-      signature = 'S2P8A16+RPaegTzJnb0Eg91csb1SExjdnvadABmQvfoIry4POBp6WbA6UOSqXojzRevyC8Ya/5QrQTnNxIb4og=='
+      uri = "/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=1&callback_data=so%3Fme+ran%26dom+data"
+      signature = 'Q6X8n1W4/oTZ9aULeAxZ9E/yPWvs8yiawvttupVor+naITtCqe5bUrRDuDYJYcSPZ7Z3l0T8CyqhYfgX6R+qdw=='
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://localhost:3001#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       expect(@gateway).to receive(:new_order).with(@new_order_args).once.and_return(@order)
@@ -154,8 +154,8 @@ RSpec.describe StraightServer::Gateway do
     end
 
     it "uses callback_url from order when making callback" do
-      uri = '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.&status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=0'
-      signature = 'jCCEthsR0XsdDtMfEFBn1+G+XxoVTH1noO4yrdGUBJwH3ysF9QDuPGwWDlgrSqrEyxbJB1KoBIBbcRxaAE2iZA=='
+      uri = '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=0'
+      signature = 'MtRdAHH6lxsdD8LaoKsKyw/RDzfsh/OimmsciXhaAGyFFcm5/7bBKPygKn+41DHBK65gNcO/abgxOBR1Se2FdA=='
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://new_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       @order.callback_url = 'http://new_url?with=params'

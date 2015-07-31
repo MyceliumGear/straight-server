@@ -1,6 +1,6 @@
 source 'https://rubygems.org' do
   gem 'straight', '1.0.0' #, path: '../straight-engine'
-  gem 'satoshi-unit'
+  gem 'satoshi-unit', '>= 0.1.8'
   gem 'goliath'
   gem 'faye-websocket'
   gem 'sequel'

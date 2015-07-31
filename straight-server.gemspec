@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Roman Snitko"]
-  s.date = "2015-07-10"
+  s.date = "2015-07-31"
   s.description = "Accepts orders via http, returns payment info via http or streams updates via websockets, stores orders in a DB"
   s.email = "roman.snitko@gmail.com"
   s.executables = ["straight-console", "straight-server", "straight-server-benchmark"]
@@ -104,7 +104,7 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<straight>, ["= 1.0.0"])
-      s.add_runtime_dependency(%q<satoshi-unit>, [">= 0"])
+      s.add_runtime_dependency(%q<satoshi-unit>, [">= 0.1.8"])
       s.add_runtime_dependency(%q<goliath>, [">= 0"])
       s.add_runtime_dependency(%q<faye-websocket>, [">= 0"])
       s.add_runtime_dependency(%q<sequel>, [">= 0"])
@@ -119,7 +119,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<github_api>, ["= 0.11.3"])
     else
       s.add_dependency(%q<straight>, ["= 1.0.0"])
-      s.add_dependency(%q<satoshi-unit>, [">= 0"])
+      s.add_dependency(%q<satoshi-unit>, [">= 0.1.8"])
       s.add_dependency(%q<goliath>, [">= 0"])
       s.add_dependency(%q<faye-websocket>, [">= 0"])
       s.add_dependency(%q<sequel>, [">= 0"])
@@ -135,7 +135,7 @@ Gem::Specification.new do |s|
     end
   else
     s.add_dependency(%q<straight>, ["= 1.0.0"])
-    s.add_dependency(%q<satoshi-unit>, [">= 0"])
+    s.add_dependency(%q<satoshi-unit>, [">= 0.1.8"])
     s.add_dependency(%q<goliath>, [">= 0"])
     s.add_dependency(%q<faye-websocket>, [">= 0"])
     s.add_dependency(%q<sequel>, [">= 0"])
