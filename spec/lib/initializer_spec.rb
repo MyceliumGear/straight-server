@@ -15,7 +15,7 @@ RSpec.describe StraightServer::Initializer do
     @templates_dir = File.expand_path('../../templates', File.dirname(__FILE__))
     ENV['HOME']   = File.expand_path('../tmp', File.dirname(__FILE__))
     @initializer = StraightServer::Initializer.new
-    StraightServer::Initializer::ConfigDir.set!
+    StraightServer::Initializer::ConfigDir.set! false
   end
 
   after(:each) do
