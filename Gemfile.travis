@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'straight', github: "snitko/straight"
-gem 'satoshi-unit'
+gem 'straight', github: 'MyceliumGear/straight'
+gem 'satoshi-unit', '>= 0.1.8'
 gem 'goliath'
 gem 'faye-websocket'
 gem 'sequel'
@@ -9,6 +9,7 @@ gem 'logmaster', '0.1.5'
 gem 'ruby-hmac'
 gem 'httparty'
 gem 'redis'
+gem 'btcruby'
 
 group :development do
   gem 'byebug'
