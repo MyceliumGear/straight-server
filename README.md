@@ -10,7 +10,7 @@ Straight server
 
 > Website: http://gear.mycelium.com
 
-[![Build Status](https://travis-ci.org/MyceliumGear/straight-server.svg)](https://travis-ci.org/MyceliumGear/straight-server)
+[![Build Status](https://travis-ci.org/MyceliumGear/straight-server.svg?branch=master)](https://travis-ci.org/MyceliumGear/straight-server)
 
 If you'd like to accept Bitcoin payments on your website automatically, but you're not
 fond of services like Coinbase or Bitpay, which hold your bitcoins for you and require a ton
