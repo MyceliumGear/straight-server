@@ -1,5 +1,5 @@
 module StraightServer
-  class WebsocketClient
+  class WebsocketInsightClient
 
     @@address_check_list = []
     
@@ -12,7 +12,7 @@ module StraightServer
           socket.on :connect do
             StraightServer.logger.info "Connected to Insight websocket"
             socket.emit :subscribe, 'inv'
-            @wclient = StraightServer::WebsocketClient.new
+            @wclient = StraightServer::WebsocketInsightClient.new
           end
 
           socket.on :tx do |data| 

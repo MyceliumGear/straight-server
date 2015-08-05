@@ -209,7 +209,7 @@ module StraightServer
 
     def open_ws_connect
       Thread.new do
-        StraightServer::WebsocketClient.start(Config.insight_websocket_url)
+        StraightServer::WebsocketInsightClient.start(Config.insight_websocket_url)
       end
     end
 
