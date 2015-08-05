@@ -62,7 +62,7 @@ module StraightServer
 
     def self.set_status_for(address, data)
       order = self.find(address: address)
-      return if order.gateway.confirmations_required != 0
+      return if order.gateway.confirmations_required != 0 || order[:status] >= 2
       amount_paid = 0
       data["vout"].map { |el| amount_paid += el[address].to_i }
       
@@ -160,6 +160,7 @@ module StraightServer
       end
       StraightServer.logger.info "Checking status of order #{self.id}"
       super
+      StraightServer::WebsocketInsightClient.remove_address(self.address) if self.status >= 2
     end
 
     def time_left_before_expiration

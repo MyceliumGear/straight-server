@@ -161,6 +161,7 @@ module StraightServer
 
       self.update_last_keychain_id(attrs[:keychain_id]) unless order.reused > 0
       self.save
+      StraightServer::WebsocketInsightClient.add_address(order.address)
       StraightServer.logger.info "Order #{order.id} created: #{order.to_h}"
       order
     end
