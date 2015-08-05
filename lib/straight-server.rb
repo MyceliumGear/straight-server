@@ -8,6 +8,7 @@ require 'base64'
 require 'net/http'
 require 'redis'
 require 'faye/websocket'
+require 'socket.io-client-simple'
 Sequel.extension :migration
 
 module StraightServer
@@ -25,6 +26,7 @@ end
 require_relative 'straight-server/utils/hash_string_to_sym_keys'
 require_relative 'straight-server/random_string'
 require_relative 'straight-server/config'
+require_relative 'straight-server/websocket_client.rb'
 require_relative 'straight-server/initializer'
 require_relative 'straight-server/thread'
 require_relative 'straight-server/orders_controller'

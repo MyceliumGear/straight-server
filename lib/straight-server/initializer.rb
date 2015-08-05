@@ -43,6 +43,7 @@ module StraightServer
       run_migrations         if migrations_pending?
       setup_redis_connection
       initialize_routes
+      open_ws_connect
     end
 
     def add_route(path, &block)
@@ -204,6 +205,12 @@ module StraightServer
         db:       Config.redis[:db],
         password: Config.redis[:password]
       )
+    end
+
+    def open_ws_connect
+      Thread.new do
+        StraightServer::WebsocketClient.start(Config.insight_websocket_url)
+      end
     end
 
   end

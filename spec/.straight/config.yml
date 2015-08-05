@@ -49,6 +49,8 @@ blockchain_adapters:
 
 insight_url: "https://insight.mycelium.com/api"
 insight_test_url: "https://test-insight.bitpay.com"
+
+insight_websocket_url: "wss://insight.mycelium.com"
   
 db:
   adapter: sqlite

@@ -95,6 +95,9 @@ blockchain_adapters:
 # You can also set a testnet insight url to use:
 #   insight_test_url: "https://test.localhost/api"
 
+# Websocket Insight Url
+insight_websocket_url: "wss://insight.mycelium.com"
+
 logmaster:
   log_level: INFO # Wise to change to WARN for production
   file: straight.log
