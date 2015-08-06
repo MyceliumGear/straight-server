@@ -35,6 +35,10 @@ module StraightServer
       def remove_address(address)
         @@address_check_list.delete(address)
       end
+
+      def clear_address_list
+        @@address_check_list = []
+      end
     end
 
     def check_transaction(data)
