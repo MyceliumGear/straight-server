@@ -103,7 +103,10 @@ module StraightServer
     end
 
     def to_http_params
-      "order_id=#{id}&amount=#{amount}&amount_in_btc=#{amount_in_btc(as: :string)}&amount_paid_in_btc=#{amount_in_btc(field: amount_paid, as: :string)}&status=#{status}&address=#{address}&tid=#{tid}&keychain_id=#{keychain_id}&last_keychain_id=#{@gateway.last_keychain_id}"
+      "order_id=#{id}&amount=#{amount}&amount_in_btc=#{amount_in_btc(as: :string)}&" \
+      "amount_paid_in_btc=#{amount_in_btc(field: amount_paid, as: :string)}&status=#{status}&" \
+      "address=#{address}&tid=#{tid}&keychain_id=#{keychain_id}&last_keychain_id=#{@gateway.last_keychain_id}&" \
+      "after_payment_redirect_to=#{after_payment_redirect_to}&auto_redirect=#{auto_redirect}"
     end
 
     def before_create

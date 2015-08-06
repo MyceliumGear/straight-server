@@ -49,7 +49,9 @@ module StraightServer
           keychain_id:      @params['keychain_id'],
           callback_data:    @params['callback_data'],
           data:             @params['data'],
-          description:      @params['description']
+          description:      @params['description'],
+          after_payment_redirect_to: @params['after_payment_redirect_to'],
+          auto_redirect:    @params['auto_redirect']
         }
 
         order = @gateway.create_order(order_data)
