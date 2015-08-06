@@ -6,22 +6,20 @@ module StraightServer
     class << self
       
       def start(url)
-        EM.run do
-          socket = SocketIO::Client::Simple.connect url
+        socket = SocketIO::Client::Simple.connect url
 
-          socket.on :connect do
-            StraightServer.logger.info "Connected to Insight websocket"
-            socket.emit :subscribe, 'inv'
-            @wclient = StraightServer::WebsocketInsightClient.new
-          end
+        socket.on :connect do
+          StraightServer.logger.info "Connected to Insight websocket with url: #{url}"
+          socket.emit :subscribe, 'inv'
+          @wclient = StraightServer::WebsocketInsightClient.new
+        end
 
-          socket.on :tx do |data| 
-            @wclient.check_transaction(data) if data
-          end
- 
-          socket.on :error do |err|
-            StraightServer.logger.warn err
-          end
+        socket.on :tx do |data|
+          @wclient.check_transaction(data) if data["vout"]
+        end
+
+        socket.on :error do |err|
+          StraightServer.logger.warn err
         end
       end
 
@@ -31,6 +29,7 @@ module StraightServer
 
       def add_address(address)
         @@address_check_list.push(address).uniq!
+        StraightServer.logger.info "[WS] Added address for tracking: #{@@address_check_list}"
       end
 
       def remove_address(address)

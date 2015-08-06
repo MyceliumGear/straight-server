@@ -43,7 +43,6 @@ module StraightServer
       run_migrations         if migrations_pending?
       setup_redis_connection
       initialize_routes
-      open_ws_connect
     end
 
     def add_route(path, &block)
@@ -192,6 +191,12 @@ module StraightServer
         end
       end
     end
+    
+    def open_ws_connect
+      StraightServer::Thread.new do
+        StraightServer::WebsocketInsightClient.start(Config.insight_websocket_url)
+      end
+    end
 
     # Loads redis gem and sets up key prefixes for order counters
     # for the current straight environment.
@@ -205,12 +210,6 @@ module StraightServer
         db:       Config.redis[:db],
         password: Config.redis[:password]
       )
-    end
-
-    def open_ws_connect
-      Thread.new do
-        StraightServer::WebsocketInsightClient.start(Config.insight_websocket_url)
-      end
     end
 
   end

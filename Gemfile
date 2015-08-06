@@ -1,9 +1,8 @@
 source 'https://rubygems.org' do
-  gem 'straight', '1.0.0', path: '../straight'
+  gem 'straight', '1.0.0' #, path: '../straight-engine'
   gem 'satoshi-unit', '>= 0.1.8'
   gem 'goliath'
   gem 'faye-websocket'
-  gem 'eventmachine'
   gem 'socket.io-client-simple'
   gem 'sequel'
   gem 'logmaster', '0.1.5'

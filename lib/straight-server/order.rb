@@ -62,14 +62,18 @@ module StraightServer
 
     def self.set_status_for(address, data)
       order = self.find(address: address)
-      return if order.gateway.confirmations_required != 0 || order[:status] >= 2
+      gateway = order.gateway
+      return if gateway.confirmations_required != 0 || order[:status] >= 2
       amount_paid = 0
       data["vout"].map { |el| amount_paid += el[address].to_i }
       
       order.tid = data["txid"].to_s
       order.amount_paid = amount_paid
-      order[:status] = order.define_status(amount_paid, order.amount)
-      order.save
+      order.status = order[:status] = order.define_status(amount_paid, order.amount)
+      order.db.transaction do
+        order.save
+        order.db.after_commit { gateway.order_status_changed(order) }
+      end
     end
 
     def cancelable?

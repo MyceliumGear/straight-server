@@ -168,7 +168,6 @@ DEPENDENCIES
   btcruby
   bundler (~> 1.0)
   byebug
-  eventmachine
   factory_girl
   faye-websocket
   github_api (= 0.11.3)
