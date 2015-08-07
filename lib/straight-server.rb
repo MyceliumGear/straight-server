@@ -16,8 +16,6 @@ module StraightServer
 
   VERSION = File.read(File.expand_path('../', File.dirname(__FILE__)) + '/VERSION')
 
-  StraightServerError = Class.new(StandardError)
-
   class << self
     attr_accessor :db_connection, :redis_connection, :logger
   end
@@ -31,3 +29,4 @@ require_relative 'straight-server/websocket_insight_client'
 require_relative 'straight-server/initializer'
 require_relative 'straight-server/thread'
 require_relative 'straight-server/orders_controller'
+require_relative 'straight-server/errors'
