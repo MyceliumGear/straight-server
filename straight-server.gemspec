@@ -116,6 +116,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<redis>, [">= 0"])
       s.add_runtime_dependency(%q<btcruby>, [">= 0"])
       s.add_runtime_dependency(%q<socket.io-client-simple>, [">= 0"])
+      s.add_runtime_dependency(%q<celluloid>, [">= 0"])
       s.add_development_dependency(%q<byebug>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 2.0.1"])
@@ -136,6 +137,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_dependency(%q<github_api>, ["= 0.11.3"])
       s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
+      s.add_dependency(%q<celluloid>, [">= 0"])
     end
   else
     s.add_dependency(%q<straight>, ["= 1.0.0"])
@@ -153,6 +155,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
     s.add_dependency(%q<github_api>, ["= 0.11.3"])
     s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
+    s.add_dependency(%q<celluloid>, [">= 0"])
   end
 end
 

@@ -10,6 +10,7 @@ source 'https://rubygems.org' do
   gem 'httparty'
   gem 'redis'
   gem 'btcruby'
+  gem 'celluloid'
 end
 
 unless ENV['STRAIGHT_SERVER_IGNORE_ADDONS_GEMFILE'] # use this flag when building straight-server.gemspec

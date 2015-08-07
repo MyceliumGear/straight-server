@@ -11,6 +11,7 @@ gem 'ruby-hmac'
 gem 'httparty'
 gem 'redis'
 gem 'btcruby'
+gem 'celluloid'
 
 group :development do
   gem 'byebug'

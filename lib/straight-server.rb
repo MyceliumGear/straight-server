@@ -9,6 +9,7 @@ require 'net/http'
 require 'redis'
 require 'faye/websocket'
 require 'socket.io-client-simple'
+require 'celluloid/current'
 Sequel.extension :migration
 
 module StraightServer

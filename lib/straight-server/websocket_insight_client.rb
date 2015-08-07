@@ -1,50 +1,49 @@
 module StraightServer
   class WebsocketInsightClient
+    include Celluloid
+    include Celluloid::Notifications
 
-    @@address_check_list = []
-    
-    class << self
-      
-      def start(url)
-        socket = SocketIO::Client::Simple.connect url
+    attr_reader :address_monit_list
 
-        socket.on :connect do
-          StraightServer.logger.info "Connected to Insight websocket with url: #{url}"
-          socket.emit :subscribe, 'inv'
-          @wclient = StraightServer::WebsocketInsightClient.new
-        end
+    def initialize(url)
+      @address_monit_list = []
+      connect(url)
+      subscribe "add_address_for_monit", :add_address
+      subscribe "remove_address_from_monit", :remove_address
+      subscribe "ws_check_transaction", :check_transaction
+    end
 
-        socket.on :tx do |data|
-          @wclient.check_transaction(data) if data["vout"]
-        end
+    def connect(url)
+      socket = SocketIO::Client::Simple.connect url
 
-        socket.on :error do |err|
-          StraightServer.logger.warn err
-        end
+      socket.on :connect do
+        StraightServer.logger.info "Connected to Insight websocket with url: #{url}"
+        socket.emit :subscribe, 'inv'
       end
 
-      def address_for_check_list
-        @@address_check_list
+      socket.on :tx do |data|
+        Celluloid.publish("ws_check_transaction", data ) if data["vout"]
       end
 
-      def add_address(address)
-        @@address_check_list.push(address).uniq!
-        StraightServer.logger.info "[WS] Added address for tracking: #{@@address_check_list}"
-      end
-
-      def remove_address(address)
-        @@address_check_list.delete(address)
-      end
-
-      def clear_address_list
-        @@address_check_list = []
+      socket.on :error do |err|
+        StraightServer.logger.warn err
       end
     end
 
-    def check_transaction(data)
+    def add_address(topic, address)
+      @address_monit_list.push(address).uniq!
+      StraightServer.logger.info "[WS] Added address for tracking: #{@address_monit_list}"
+    end
+
+    def remove_address(topic, address)
+      @address_monit_list.delete(address)
+    end
+    
+    def check_transaction(topic, data)
+      return if @address_monit_list.empty?
       data["vout"].each do |o|
-        if index = @@address_check_list.find_index(o.keys.first)
-          address = @@address_check_list.delete_at(index)
+        if index = @address_monit_list.find_index(o.keys.first)
+          address = @address_monit_list.delete_at(index)
           StraightServer.logger.info "[WS] Found transaction for address: #{address}"
           StraightServer::Order.set_status_for(address, data)
         end
