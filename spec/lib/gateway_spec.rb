@@ -492,20 +492,20 @@ RSpec.describe StraightServer::Gateway do
 
   context "attributes for after payment redirect" do
 
-    let(:gateway) { StraightServer::GatewayOnConfig.find_by_id(2) }
+    before(:each) { @gateway = StraightServer::GatewayOnConfig.find_by_id(2) }
 
     it 'keep order own values' do
       order_attributes = attributes_for(:order)
-      order = gateway.create_order(order_attributes)
+      order = @gateway.create_order(order_attributes)
       expect(order.after_payment_redirect_to).to eq(order_attributes[:after_payment_redirect_to])
       expect(order.auto_redirect).to eq(order_attributes[:auto_redirect])
     end
 
     it 'inherit values from gateway' do
       order_attributes = attributes_for(:order_without_redirect_to_attrs)
-      order = gateway.create_order(order_attributes)
-      expect(order.after_payment_redirect_to).to eq(gateway.after_payment_redirect_to)
-      expect(order.auto_redirect).to eq(gateway.auto_redirect)
+      order = @gateway.create_order(order_attributes)
+      expect(order.after_payment_redirect_to).to eq(@gateway.after_payment_redirect_to)
+      expect(order.auto_redirect).to eq(@gateway.auto_redirect)
     end
   end
 
