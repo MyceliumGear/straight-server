@@ -3,12 +3,14 @@ source 'https://rubygems.org' do
   gem 'satoshi-unit', '>= 0.1.8'
   gem 'goliath'
   gem 'faye-websocket'
+  gem 'socket.io-client-simple'
   gem 'sequel'
   gem 'logmaster', '0.1.5'
   gem 'ruby-hmac'
   gem 'httparty'
   gem 'redis'
   gem 'btcruby'
+  gem 'celluloid'
 end
 
 unless ENV['STRAIGHT_SERVER_IGNORE_ADDONS_GEMFILE'] # use this flag when building straight-server.gemspec

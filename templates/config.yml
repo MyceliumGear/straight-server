@@ -95,6 +95,11 @@ blockchain_adapters:
 # You can also set a testnet insight url to use:
 #   insight_test_url: "https://test.localhost/api"
 
+# Websocket Insight Url
+# Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
+# for gateways and orders without confirmation required (eq to 0).
+# insight_websocket_url: "wss://localhost:4000"
+
 logmaster:
   log_level: INFO # Wise to change to WARN for production
   file: straight.log

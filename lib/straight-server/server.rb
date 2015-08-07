@@ -12,6 +12,7 @@ module StraightServer
       require_relative 'order'
       require_relative 'gateway'
       load_addons
+      open_ws_connect 
       resume_tracking_active_orders!
     end
 

@@ -31,6 +31,10 @@ module StraightServer
       @gateway        = g
     end
 
+    def self.find_by_address(address)
+      where(address: address).order(Sequel.desc(:reused)).limit(1).first
+    end
+
     # This method is called from the Straight::OrderModule::Prependable
     # using super(). The reason it is reloaded here is because sometimes
     # we want to query the DB first and see if status has changed there.
@@ -58,6 +62,22 @@ module StraightServer
         end
       end
       self[:status] = @status
+    end
+
+    def self.set_status_for(address, data)
+      order = find_by_address(address)
+      gateway = order.gateway
+      return if gateway.confirmations_required != 0 || order[:status] >= 2
+      amount_paid = 0
+      data["vout"].map { |el| amount_paid += el[address].to_i }
+      
+      order.tid = data["txid"].to_s
+      order.amount_paid = amount_paid
+      order.status = order[:status] = order.define_status(amount_paid, order.amount)
+      order.db.transaction do
+        order.save
+        order.db.after_commit { gateway.order_status_changed(order) }
+      end
     end
 
     def cancelable?
@@ -148,6 +168,7 @@ module StraightServer
       end
       StraightServer.logger.info "Checking status of order #{self.id}"
       super
+      Celluloid.publish("remove_address_from_monit", self.address) if self.status >= 2
     end
 
     def time_left_before_expiration

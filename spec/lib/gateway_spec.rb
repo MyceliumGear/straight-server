@@ -9,7 +9,7 @@ RSpec.describe StraightServer::Gateway do
     @order_mock = double('order mock')
     order_mock_allowed_attributes = [
       :id, :gateway=, :save, :to_h, :id=, :test_mode=, :test_mode, :old_status, :description=,
-      :set_amount_paid, :test_mode, :auto_redirect=, :after_payment_redirect_to=
+      :set_amount_paid, :test_mode, :auto_redirect=, :after_payment_redirect_to=, :address, :address=
     ]
     order_mock_allowed_attributes.each { |m| allow(@order_mock).to receive(m) }
     allow(@order_mock).to receive(:reused).and_return(0)
