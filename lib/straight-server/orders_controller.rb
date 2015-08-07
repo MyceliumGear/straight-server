@@ -17,12 +17,6 @@ module StraightServer
     end
 
     def create
-
-      unless @gateway
-        StraightServer.logger.warn "Gateway not found"
-        return [404, {}, "Gateway not found" ]
-      end
-
       if @gateway.check_signature
         StraightServer::SignatureValidator.new(@gateway, @env).validate!
       else
@@ -79,12 +73,6 @@ module StraightServer
     end
 
     def show
-
-      unless @gateway
-        StraightServer.logger.warn "Gateway not found"
-        return [404, {}, "Gateway not found" ]
-      end
-
       if @gateway.check_signature
         StraightServer::SignatureValidator.new(@gateway, @env).validate!
       end
@@ -99,7 +87,6 @@ module StraightServer
     end
 
     def websocket
-
       order = find_order
       if order
         begin
@@ -114,11 +101,6 @@ module StraightServer
     end
 
     def cancel
-      unless @gateway
-        StraightServer.logger.warn "Gateway not found"
-        return [404, {}, "Gateway not found"]
-      end
-
       if @gateway.check_signature
         StraightServer::SignatureValidator.new(@gateway, @env).validate!
       end
@@ -136,11 +118,6 @@ module StraightServer
     end
 
     def last_keychain_id
-      unless @gateway
-        StraightServer.logger.warn "Gateway not foun"
-        return [404, {}, "Gateway not found"]
-      end
-
       [200, {}, {gateway_id: @gateway.id, last_keychain_id: @gateway.last_keychain_id}.to_json]
     end
 
@@ -153,6 +130,7 @@ module StraightServer
         StraightServer.logger.info "#{@method} #{@env['REQUEST_PATH']}\n#{@params}"
 
         @gateway = StraightServer::Gateway.find_by_hashed_id(@request_path[1])
+        raise Gateway::RecordNotFound unless @gateway
 
         @response = begin
           if @request_path[3] # if an order id is supplied
@@ -179,6 +157,10 @@ module StraightServer
         end
 
         @response = [404, {}, "#{@method} /#{@request_path.join('/')} Not found"] if @response.nil?
+
+      rescue Gateway::RecordNotFound => e
+        StraightServer.logger.warn e.message
+        @response = [404, {}, e.message]
       end
 
       def find_order

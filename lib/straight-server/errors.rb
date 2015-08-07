@@ -51,6 +51,12 @@ module StraightServer
         "Please provide it in config file or DB."
       end
     end
+
+    class RecordNotFound < StraightServerError
+      def message
+        "Gateway not found"
+      end
+    end
   end
 
 end
