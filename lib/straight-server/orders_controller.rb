@@ -13,7 +13,7 @@ module StraightServer
       @params       = env.params
       @method       = env['REQUEST_METHOD']
       @request_path = env['REQUEST_PATH'].split('/').delete_if { |s| s.nil? || s.empty? }
-      dispatch
+      @response     = dispatch
     end
 
     def create
@@ -125,50 +125,75 @@ module StraightServer
 
       # Refactoring proposed: https://github.com/AlexanderPavlenko/straight-server/commit/49ea6e3732a9564c04d8dfecaee6d0ebaa462042
       def dispatch
-
         StraightServer.logger.blank_lines
         StraightServer.logger.info "#{@method} #{@env['REQUEST_PATH']}\n#{@params}"
 
         @gateway = StraightServer::Gateway.find_by_hashed_id(@request_path[1])
-        raise Gateway::RecordNotFound unless @gateway
+        raise Gateway::RecordNotFound if @gateway.nil?
 
-        @response = begin
-          if @request_path[3] # if an order id is supplied
-            @params['id'] = @request_path[3]
-            @params['id'] = @params['id'].to_i if @params['id'] =~ /\A\d+\Z/
-            if @request_path[4] == 'websocket'
-              websocket
-            elsif @request_path[4] == 'cancel'&& @method == 'POST'
-              cancel
-            elsif @request_path[4].nil? && @method == 'GET'
+        response =
+
+          case "#{@method} #{@env['REQUEST_PATH']}"
+
+            # Called create action. Example:
+            #
+            # POST /gateways/:gateway_id/orders
+            #
+            when /\APOST \/gateways\/(\d+)\/orders\Z/
+              create
+
+            # Called show action. Example:
+            #
+            # GET /gateways/:gateway_id/orders/:value
+            #
+            when /\AGET \/gateways\/(\d+)\/orders\/([^\/]+)\Z/
               show
-            end
-          elsif @request_path[2] == 'last_keychain_id'
-            last_keychain_id
-          elsif @request_path[3].nil?# && @method == 'POST'
-            create
+
+            # Called websocket action. Example:
+            #
+            # GET /gateways/:gateway_id/orders/:value/websocket
+            #
+            when /\AGET \/gateways\/(\d+)\/orders\/([^\/]+)\/websocket\Z/
+              websocket
+
+            # Called cancel action. Example:
+            #
+            # POST /gateways/:gateway_id/orders/:value/cancel
+            #
+            when /\APOST \/gateways\/(\d+)\/orders\/([^\/]+)\/cancel\Z/
+              cancel
+
+            # Called last_keychain_id action. Example:
+            #
+            # GET /gateways/:gateway_id/last_keychain_id
+            #
+            when /\AGET \/gateways\/(\d+)\/last_keychain_id\Z/
+              last_keychain_id
+
+            else
+              raise RoutingError.new(@method, @env['REQUEST_PATH'])
+
           end
-        rescue StraightServer::SignatureValidator::InvalidNonce
-          StraightServer.logger.warn message = "X-Nonce is invalid: #{@env["#{HTTP_PREFIX}X_NONCE"].inspect}"
-          [409, {}, message]
-        rescue StraightServer::SignatureValidator::InvalidSignature
-          StraightServer.logger.warn message = "X-Signature is invalid: #{@env["#{HTTP_PREFIX}X_SIGNATURE"].inspect}"
-          [409, {}, message]
-        end
 
-        @response = [404, {}, "#{@method} /#{@request_path.join('/')} Not found"] if @response.nil?
+        # TODO: Remove it and use RecordNotFound for Order
+        raise RoutingError.new(@method, @env['REQUEST_PATH']) if response.nil?
 
-      rescue Gateway::RecordNotFound => e
+        response
+
+      rescue RoutingError, Gateway::RecordNotFound => e
         StraightServer.logger.warn e.message
-        @response = [404, {}, e.message]
+        [404, {}, e.message]
+      rescue SignatureValidator::InvalidNonce
+        StraightServer.logger.warn message = "X-Nonce is invalid: #{@env["#{HTTP_PREFIX}X_NONCE"].inspect}"
+        [409, {}, message]
+      rescue SignatureValidator::InvalidSignature
+        StraightServer.logger.warn message = "X-Signature is invalid: #{@env["#{HTTP_PREFIX}X_SIGNATURE"].inspect}"
+        [409, {}, message]
       end
 
       def find_order
-        if @params['id'] =~ /[^\d]+/
-          Order[:payment_id => @params['id']]
-        else
-          Order[@params['id']]
-        end
+        id = @request_path[3]
+        id =~ /\A\d+\Z/ ? Order[id.to_i] : Order[:payment_id => id]
       end
 
       def add_callback_data_warning(order)

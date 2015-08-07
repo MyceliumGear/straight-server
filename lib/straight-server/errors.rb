@@ -2,9 +2,15 @@ module StraightServer
 
   class StraightServerError < StandardError; end
 
-  class SignatureValidator::SignatureValidatorError < StandardError; end
+  class SignatureValidator::SignatureValidatorError < StraightServerError; end
   class SignatureValidator::InvalidNonce            < SignatureValidator::SignatureValidatorError; end
   class SignatureValidator::InvalidSignature        < SignatureValidator::SignatureValidatorError; end
+
+  class RoutingError < StraightServerError
+    def initialize(method, path)
+      super("#{method} #{path} Not found")
+    end
+  end
 
   module GatewayModule
     class GatewayInactive            < StraightServerError; end
