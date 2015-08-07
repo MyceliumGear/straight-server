@@ -120,7 +120,10 @@ module StraightServer
 
     # Creates a new order and saves into the DB. Checks if the MD5 hash
     # is correct first.
-    def create_order(attrs={})
+    def create_order(attributes = {})
+      # TODO: don't use hash attributes as an internal changeable variable.
+      # It also changes in the function where it was called.
+      attrs = attributes.dup
 
       raise GatewayInactive unless self.active
 
@@ -129,13 +132,9 @@ module StraightServer
       # If we decide to reuse the order, we simply need to supply the
       # keychain_id that was used in the order we're reusing.
       # The address will be generated correctly.
-      if reused_order = find_reusable_order
-        attrs[:keychain_id] = reused_order.keychain_id
-
-      end
-      
+      reused_order = find_reusable_order
+      attrs[:keychain_id] = reused_order.keychain_id if reused_order
       attrs[:keychain_id] = nil if attrs[:keychain_id] == ''
-
 
       order = new_order(
         amount:           (attrs[:amount] && attrs[:amount].to_f),
@@ -143,6 +142,9 @@ module StraightServer
         currency:         attrs[:currency],
         btc_denomination: attrs[:btc_denomination]
       )
+
+      attrs[:after_payment_redirect_to] ||= after_payment_redirect_to
+      attrs[:auto_redirect] ||= auto_redirect
 
       order.id            = attrs[:id].to_i       if attrs[:id]
       order.data          = attrs[:data]          if attrs[:data]
@@ -152,6 +154,8 @@ module StraightServer
       order.gateway       = self
       order.test_mode     = test_mode
       order.description   = attrs[:description]
+      order.auto_redirect = attrs[:auto_redirect] if attrs[:auto_redirect]
+      order.after_payment_redirect_to = attrs[:after_payment_redirect_to] if attrs[:after_payment_redirect_to]
       order.reused        = reused_order.reused + 1 if reused_order
       order.save
 
@@ -513,6 +517,9 @@ module StraightServer
     # it will keep checking on the existing ones.
     attr_accessor :active
 
+    attr_accessor :after_payment_redirect_to
+    attr_accessor :auto_redirect
+
     def self.find_by_hashed_id(s)
       self.find_by_id(s)
     end
@@ -590,6 +597,8 @@ module StraightServer
       gateway.secret                         = attrs['secret']
       gateway.check_signature                = attrs['check_signature']
       gateway.callback_url                   = attrs['callback_url']
+      gateway.after_payment_redirect_to      = attrs['after_payment_redirect_to']
+      gateway.auto_redirect                  = attrs['auto_redirect']
       gateway.default_currency               = attrs['default_currency']
       gateway.orders_expiration_period       = attrs['orders_expiration_period']
       gateway.active                         = attrs['active']

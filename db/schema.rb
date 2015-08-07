@@ -24,6 +24,8 @@ Sequel.migration do
       TrueClass :test_mode, :default=>false
       Integer :test_last_keychain_id, :default=>0, :null=>false
       String :test_pubkey, :size=>255
+      String :after_payment_redirect_to, :text=>true
+      TrueClass :auto_redirect, :default=>false
       
       index [:hashed_id]
       index [:id], :unique=>true
@@ -47,10 +49,12 @@ Sequel.migration do
       String :description, :size=>255
       Integer :reused, :default=>0
       String :callback_data, :size=>255
-      String :amount_paid
+      Bignum :amount_paid
       String :callback_url, :size=>255
       String :title, :size=>255
       TrueClass :test_mode, :default=>false
+      String :after_payment_redirect_to, :text=>true
+      TrueClass :auto_redirect, :default=>false
       
       index [:address]
       index [:id], :unique=>true

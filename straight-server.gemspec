@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
     "db/migrations/018_add_test_keychain_id_to_gateways.rb",
     "db/migrations/019_add_test_pubkey_to_gateways.rb",
     "db/migrations/020_add_test_mode_to_orders.rb",
+    "db/migrations/021_add_fields_for_after_payment_redirect",
     "db/schema.rb",
     "examples/client/client.dart",
     "examples/client/client.html",
