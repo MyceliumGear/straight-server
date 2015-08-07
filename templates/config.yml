@@ -96,7 +96,9 @@ blockchain_adapters:
 #   insight_test_url: "https://test.localhost/api"
 
 # Websocket Insight Url
-insight_websocket_url: "wss://insight.mycelium.com"
+# Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
+# for gateways and orders without confirmation required (eq to 0).
+# insight_websocket_url: "wss://localhost:4000"
 
 logmaster:
   log_level: INFO # Wise to change to WARN for production

@@ -8,21 +8,21 @@ RSpec.describe StraightServer::WebsocketInsightClient do
     StraightServer::WebsocketInsightClient.add_address(address)
   end
 
-  it "add address for monitoring" do
+  it "adds address for monitoring" do
     expect(StraightServer::WebsocketInsightClient.address_for_check_list).to eq [address]
   end
 
-  it "remove address from monitorin array" do
+  it "removes address from monitorin array" do
     StraightServer::WebsocketInsightClient.remove_address(address)
     expect(StraightServer::WebsocketInsightClient.address_for_check_list).to eq([])
   end
 
-  it "not add same address for monitorin array" do
+  it "dosn't add the same address in monitoring array" do
     StraightServer::WebsocketInsightClient.add_address(address)
     expect(StraightServer::WebsocketInsightClient.address_for_check_list).to eq([address])
   end
 
-  it "fill order data if transaction found for specific address" do
+  it "fills order data if transaction was found for a specific address" do
     stub_request(:any, /(.*)/).to_return(:status => 200, :body => "{}", :headers => {})
     order = create(:order, address: address, amount: 14830000)
     allow(order.gateway).to receive(:websockets).and_return([false])
