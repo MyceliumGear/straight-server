@@ -31,6 +31,10 @@ module StraightServer
       @gateway        = g
     end
 
+    def self.find_by_address(address)
+      where(address: address).order(Sequel.desc(:reused)).limit(1).first
+    end
+
     # This method is called from the Straight::OrderModule::Prependable
     # using super(). The reason it is reloaded here is because sometimes
     # we want to query the DB first and see if status has changed there.
@@ -61,7 +65,7 @@ module StraightServer
     end
 
     def self.set_status_for(address, data)
-      order = self.find(address: address)
+      order = find_by_address(address)
       gateway = order.gateway
       return if gateway.confirmations_required != 0 || order[:status] >= 2
       amount_paid = 0
