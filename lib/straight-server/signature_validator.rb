@@ -5,10 +5,6 @@ module StraightServer
   class SignatureValidator
     include Goliath::Constants
 
-    SignatureValidatorError = Class.new(StandardError)
-    InvalidNonce            = Class.new(SignatureValidatorError)
-    InvalidSignature        = Class.new(SignatureValidatorError)
-
     attr_reader :gateway, :env
 
     def initialize(gateway, env)
