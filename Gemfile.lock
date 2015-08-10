@@ -1,14 +1,4 @@
-PATH
-  remote: ../straight
-  specs:
-    straight (1.0.0)
-      btcruby (~> 1.0)
-      faraday
-      httparty (~> 0.13.5)
-      satoshi-unit (~> 0.1)
-
 GEM
-  remote: http://rubygems.org/
   remote: https://rubygems.org/
   specs:
     activesupport (4.2.3)
@@ -66,7 +56,6 @@ GEM
       nenv
       rspec-logsplit (>= 0.1.2)
       timers (~> 4.0.0)
-    chunky_png (1.3.4)
     columnize (0.9.0)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
@@ -110,8 +99,6 @@ GEM
       rack (>= 1.2.2)
       rack-contrib
       rack-respond_to
-    haml (4.0.6)
-      tilt
     hashie (3.4.2)
     highline (1.7.3)
     hitimes (1.2.2)
@@ -163,8 +150,6 @@ GEM
     rake (10.4.2)
     rdoc (4.2.0)
     redis (3.2.1)
-    rqrcode (0.6.0)
-      chunky_png
     rspec (3.3.0)
       rspec-core (~> 3.3.0)
       rspec-expectations (~> 3.3.0)
@@ -181,7 +166,6 @@ GEM
     rspec-support (3.3.0)
     ruby-hmac (0.4.0)
     safe_yaml (1.0.4)
-    sass (3.4.16)
     satoshi-unit (0.1.8)
     sequel (4.25.0)
     socket.io-client-simple (1.1.3)
@@ -190,8 +174,12 @@ GEM
       json
       websocket-client-simple (>= 0.2.1)
     sqlite3 (1.3.10)
+    straight (1.0.0)
+      btcruby (~> 1.0)
+      faraday
+      httparty (~> 0.13.5)
+      satoshi-unit (~> 0.1)
     thread_safe (0.3.5)
-    tilt (2.0.1)
     timecop (0.8.0)
     timers (4.0.1)
       hitimes
@@ -212,31 +200,25 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  btcruby
+  btcruby!
   bundler (~> 1.0)
   byebug
-  celluloid
+  celluloid!
   factory_girl
-  faye-websocket
+  faye-websocket!
   github_api (= 0.11.3)
-  goliath
-  haml
+  goliath!
   hashie
-  httparty
+  httparty!
   jeweler (~> 2.0.1)
-  logmaster (= 0.1.5)
-  redis
-  rqrcode
+  logmaster (= 0.1.5)!
+  redis!
   rspec
-  ruby-hmac
-  sass
-  satoshi-unit (>= 0.1.8)
-  sequel
-  socket.io-client-simple
+  ruby-hmac!
+  satoshi-unit (>= 0.1.8)!
+  sequel!
+  socket.io-client-simple!
   sqlite3
   straight (= 1.0.0)!
   timecop
   webmock
-
-BUNDLED WITH
-   1.10.5
