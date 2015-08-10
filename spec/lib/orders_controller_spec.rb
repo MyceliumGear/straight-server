@@ -1,6 +1,8 @@
 require 'spec_helper'
+require 'support/logger_context'
 
 RSpec.describe StraightServer::OrdersController do
+  include_context :logger
 
   before(:each) do
     DB.run("DELETE FROM orders")
@@ -17,6 +19,25 @@ RSpec.describe StraightServer::OrdersController do
       allow(StraightServer::Thread).to receive(:new) # ignore periodic status checks, we're not testing it here
       send_request "POST", '/gateways/2/orders', amount: 10
       expect(response).to render_json_with(status: 0, amount: 10, address: "address1", tid: nil, id: :anything, keychain_id: @gateway.last_keychain_id, last_keychain_id: @gateway.last_keychain_id)
+    end
+
+    it "create order through gateway from DB and render 200 HTTP status", :skip do
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
+
+      @gateway = StraightServer::GatewayOnDB.create(
+          confirmations_required: 0,
+          pubkey:      str,
+          order_class: 'StraightServer::Order',
+          secret:      'secret',
+          name:        'default',
+          orders_expiration_period: 600,
+          check_signature: false,
+          exchange_rate_adapter_names: ['Bitpay', 'Coinbase', 'Bitstamp']
+      )
+
+      send_signed_request @gateway, "POST", '/gateways/b4f72a1edba59739d0ccae426a0e59abf2dc476559e27b07681281e88a788e62/orders', amount: 10
+
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
     end
 
     it "renders 409 error when an order cannot be created due to invalid amount" do
