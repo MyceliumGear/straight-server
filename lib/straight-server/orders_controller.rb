@@ -135,40 +135,30 @@ module StraightServer
 
           case "#{@method} #{@env['REQUEST_PATH']}"
 
-            # Called create action. Example:
-            #
             # POST /gateways/:gateway_id/orders
             # POST /gateways/:gateway_hashed_id/orders
             #
             when /\APOST \/gateways\/([^\/]+)\/orders\Z/
               create
 
-            # Called show action. Example:
-            #
             # GET /gateways/:gateway_id/orders/:order_id
             # GET /gateways/:gateway_hashed_id/orders/:order_payment_id
             #
             when /\AGET \/gateways\/([^\/]+)\/orders\/([^\/]+)\Z/
               show
 
-            # Called websocket action. Example:
-            #
             # GET /gateways/:gateway_id/orders/:order_id/websocket
             # GET /gateways/:gateway_hashed_id/orders/:order_payment_id/websocket
             #
             when /\AGET \/gateways\/([^\/]+)\/orders\/([^\/]+)\/websocket\Z/
               websocket
 
-            # Called cancel action. Example:
-            #
             # POST /gateways/:gateway_id/orders/:order_id/cancel
             # POST /gateways/:gateway_hashed_id/orders/:order_payment_id/cancel
             #
             when /\APOST \/gateways\/([^\/]+)\/orders\/([^\/]+)\/cancel\Z/
               cancel
 
-            # Called last_keychain_id action. Example:
-            #
             # GET /gateways/:gateway_id/last_keychain_id
             # GET /gateways/:gateway_hashed_id/last_keychain_id
             #
