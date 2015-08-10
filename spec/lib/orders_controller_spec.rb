@@ -92,6 +92,13 @@ RSpec.describe StraightServer::OrdersController do
       send_request "POST", '/gateways/2/orders', amount: 10, data: "I meant this to be callback_data"
       expect(response).to render_json_with(WARNING: "Maybe you meant to use callback_data? The API has changed now. Consult the documentation.")
     end
+
+    it "renders 404 error when an gateway cannot be found" do
+      unreal_gateway_id = StraightServer::Config.gateways.count + 1
+      send_request "POST", "/gateways/#{unreal_gateway_id}/orders", amount: 0
+      expect(response[0]).to eq(404)
+      expect(response[2]).to eq("Gateway not found")
+    end
   end
 
   describe "show action" do
@@ -130,6 +137,12 @@ RSpec.describe StraightServer::OrdersController do
       expect(response).to eq([200, {}, "order json mock"])
     end
 
+    it "renders 404 error when an gateway cannot be found" do
+      unreal_gateway_id = StraightServer::Config.gateways.count + 1
+      send_request "GET", "/gateways/#{unreal_gateway_id}/orders/1"
+      expect(response[0]).to eq(404)
+      expect(response[2]).to eq("Gateway not found")
+    end
   end
 
   describe "websocket action" do
@@ -172,6 +185,13 @@ RSpec.describe StraightServer::OrdersController do
       send_request "GET", '/gateways/2/orders/payment_id/websocket'
       expect(response).to eq("ws rack response")
     end
+
+    it "renders 404 error when an gateway cannot be found" do
+      unreal_gateway_id = StraightServer::Config.gateways.count + 1
+      send_request "GET", "/gateways/#{unreal_gateway_id}/orders/payment_id/websocket"
+      expect(response[0]).to eq(404)
+      expect(response[2]).to eq("Gateway not found")
+    end
   end
 
   describe "cancel action" do
@@ -209,15 +229,31 @@ RSpec.describe StraightServer::OrdersController do
       send_request "POST", "/gateways/2/orders/payment_id/cancel"
       expect(response).to eq [409, {}, "Order is not cancelable"]
     end
+
+    it "renders 404 error when an gateway cannot be found" do
+      unreal_gateway_id = StraightServer::Config.gateways.count + 1
+      send_request "GET", "/gateways/#{unreal_gateway_id}/orders/payment_id/cancel"
+      expect(response[0]).to eq(404)
+      expect(response[2]).to eq("Gateway not found")
+    end
   end
 
-  it 'return last_keychain_id' do
-    lk_id = 123
-    @gateway = StraightServer::Gateway.find_by_id(1)
-    @gateway.last_keychain_id = lk_id
-    @gateway.save
-    send_request "GET", '/gateway/1/last_keychain_id'
-    expect(response).to render_json_with(gateway_id: @gateway.id, last_keychain_id: lk_id)
+  describe "last_keychain_id action" do
+    it 'return last_keychain_id' do
+      lk_id = 123
+      @gateway = StraightServer::Gateway.find_by_id(1)
+      @gateway.last_keychain_id = lk_id
+      @gateway.save
+      send_request "GET", '/gateways/1/last_keychain_id'
+      expect(response).to render_json_with(gateway_id: @gateway.id, last_keychain_id: lk_id)
+    end
+
+    it "renders 404 error when an gateway cannot be found" do
+      unreal_gateway_id = StraightServer::Config.gateways.count + 1
+      send_request "GET", "/gateways/#{unreal_gateway_id}/last_keychain_id"
+      expect(response[0]).to eq(404)
+      expect(response[2]).to eq("Gateway not found")
+    end
   end
 
   def send_request(method, path, params={})

@@ -204,6 +204,13 @@ module StraightServer
         end
       end
     end
+    
+    def open_ws_connect
+      Celluloid.boot
+      StraightServer::WebsocketInsightClient.new(Config.insight_websocket_url) if Config.insight_websocket_url
+    rescue SocketError
+      StraightServer.logger.warn "Please check correctness of insight_websocket_url in config file."
+    end
 
     # Loads redis gem and sets up key prefixes for order counters
     # for the current straight environment.

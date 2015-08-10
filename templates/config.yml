@@ -49,6 +49,8 @@ gateways:
     callback_url: 'http://localhost:3000/my_app/payment_callback'
     default_currency: 'BTC'
     orders_expiration_period: 600 # seconds
+    after_payment_redirect_to: 'http://localhost:3000/my_app/my_own_page'
+    auto_redirect: false
 
     # address_provider: 'Bip32'
     # address_derivation_scheme: 'm/0/n'
@@ -92,6 +94,11 @@ blockchain_adapters:
 #   insight_url: "https://localhost/api"
 # You can also set a testnet insight url to use:
 #   insight_test_url: "https://test.localhost/api"
+
+# Websocket Insight Url
+# Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
+# for gateways and orders without confirmation required (eq to 0).
+# insight_websocket_url: "wss://localhost:4000"
 
 logmaster:
   log_level: INFO # Wise to change to WARN for production

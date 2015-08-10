@@ -12,6 +12,7 @@ module StraightServer
       @initializer.prepare
       StraightServer.logger.info "starting Straight Server v #{StraightServer::VERSION}"
       @initializer.load_addons
+      @initializer.open_ws_connect
       @initializer.initialize_routes
       @initializer.resume_tracking_active_orders!
     end

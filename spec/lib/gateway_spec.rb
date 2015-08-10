@@ -4,14 +4,15 @@ RSpec.describe StraightServer::Gateway do
 
   before(:each) do
     @gateway = StraightServer::GatewayOnConfig.find_by_id(1)
-    @order_mock = double("order mock")
-    allow(@order_mock).to receive(:old_status)
-    allow(@order_mock).to receive(:description=)
-    allow(@order_mock).to receive(:set_amount_paid)
-    allow(@order_mock).to receive(:reused).and_return(0)
-    allow(@order_mock).to receive(:test_mode)
-    [:id, :gateway=, :save, :to_h, :id=, :test_mode=, :test_mode].each { |m| allow(@order_mock).to receive(m) }
     @new_order_args = { amount: 1, keychain_id: 1, currency: nil, btc_denomination: nil }
+
+    @order_mock = double('order mock')
+    order_mock_allowed_attributes = [
+      :id, :gateway=, :save, :to_h, :id=, :test_mode=, :test_mode, :old_status, :description=,
+      :set_amount_paid, :test_mode, :auto_redirect=, :after_payment_redirect_to=, :address, :address=
+    ]
+    order_mock_allowed_attributes.each { |m| allow(@order_mock).to receive(m) }
+    allow(@order_mock).to receive(:reused).and_return(0)
   end
 
   it "sets order amount in satoshis calculated from another currency" do
@@ -127,25 +128,37 @@ RSpec.describe StraightServer::Gateway do
     end
 
     it "sends a request to the callback_url and saves response" do
-      stub_request(:get, 'http://localhost:3001/payment-callback?address=address_1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1').
-        with(headers: {'X-Signature' => 'u7DrzCaVirO1gehac9Fvkh4bMfR5lTn8FI8lHOvZzuEvHEGJrdFHTm6k6Q+fpTuszXG0ftKBc4a1xclpZjpTHA=='}).
-        to_return(status: 200, body: 'okay')
+      url =
+        'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
+        'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
+        'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1'
+      signature = '8nCEuLQUsZS6sxio6d+aOy9Zb2NAdapoWtpyd/7PnWKUehUAB2xBVwvbHjxYFkb4uL2PnylkBL8qNegNbcVptw=='
+
+      stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 200, body: 'okay')
       expect(@gateway).to receive(:sleep).exactly(0).times
       @gateway.order_status_changed(@order)
       expect(@order.callback_response).to eq(code: '200', body: 'okay')
     end
 
     it "keeps sending request according to the callback schedule if there's an error" do
-      stub_request(:get, 'http://localhost:3001/payment-callback?address=address_1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1').
-        with(headers: {'X-Signature' => 'u7DrzCaVirO1gehac9Fvkh4bMfR5lTn8FI8lHOvZzuEvHEGJrdFHTm6k6Q+fpTuszXG0ftKBc4a1xclpZjpTHA=='}).
-        to_return(status: 404, body: '')
+      url =
+        'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
+        'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
+        'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1'
+      signature = '8nCEuLQUsZS6sxio6d+aOy9Zb2NAdapoWtpyd/7PnWKUehUAB2xBVwvbHjxYFkb4uL2PnylkBL8qNegNbcVptw=='
+
+      stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 404, body: '')
       expect(@gateway).to receive(:sleep).exactly(10).times
       @gateway.order_status_changed(@order)
     end
 
     it "receives random data in :data params and sends it back in a callback request" do
-      uri = "/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=1&callback_data=so%3Fme+ran%26dom+data"
-      signature = 'Q6X8n1W4/oTZ9aULeAxZ9E/yPWvs8yiawvttupVor+naITtCqe5bUrRDuDYJYcSPZ7Z3l0T8CyqhYfgX6R+qdw=='
+      uri =
+        '/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
+        'status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=1&after_payment_redirect_to=' \
+        'http://localhost:3000/my_app/my_own_page&auto_redirect=true&callback_data=so%3Fme+ran%26dom+data'
+      signature = 'iUxeL/Vv94ppGDx24PaT1dOo/JM9K1lvi+X/FMF3pjXYAIKVm8QJY5nWV0QfguytyQkJML2z2lp+zVvl16lAgQ=='
+
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://localhost:3001#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       expect(@gateway).to receive(:new_order).with(@new_order_args).once.and_return(@order)
@@ -154,8 +167,12 @@ RSpec.describe StraightServer::Gateway do
     end
 
     it "uses callback_url from order when making callback" do
-      uri = '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=0'
-      signature = 'MtRdAHH6lxsdD8LaoKsKyw/RDzfsh/OimmsciXhaAGyFFcm5/7bBKPygKn+41DHBK65gNcO/abgxOBR1Se2FdA=='
+      uri =
+        '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&' \
+        'address=address_1&tid=tid1&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
+        'http://localhost:3000/my_app/my_own_page&auto_redirect=true'
+      signature = 'fq4NnZqrig2GAqkDkEdJ/2nf5Hcp4WqHlApyOEW0JMo5cSCkI+YZ6Mua053s49dUUafJNwWxaSo1VPIfNQ4g/w=='
+
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://new_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       @order.callback_url = 'http://new_url?with=params'
@@ -471,6 +488,25 @@ RSpec.describe StraightServer::Gateway do
       expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).to raise_exception(StraightServer::Gateway::WebsocketExists)
     end
 
+  end
+
+  context "attributes for after payment redirect" do
+
+    before(:each) { @gateway = StraightServer::GatewayOnConfig.find_by_id(2) }
+
+    it 'keep order own values' do
+      order_attributes = attributes_for(:order)
+      order = @gateway.create_order(order_attributes)
+      expect(order.after_payment_redirect_to).to eq(order_attributes[:after_payment_redirect_to])
+      expect(order.auto_redirect).to eq(order_attributes[:auto_redirect])
+    end
+
+    it 'inherit values from gateway' do
+      order_attributes = attributes_for(:order_without_redirect_to_attrs)
+      order = @gateway.create_order(order_attributes)
+      expect(order.after_payment_redirect_to).to eq(@gateway.after_payment_redirect_to)
+      expect(order.auto_redirect).to eq(@gateway.auto_redirect)
+    end
   end
 
   def hmac_sha256(key, secret)

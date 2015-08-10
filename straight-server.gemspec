@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Roman Snitko"]
-  s.date = "2015-07-31"
+  s.date = "2015-08-07"
   s.description = "Accepts orders via http, returns payment info via http or streams updates via websockets, stores orders in a DB"
   s.email = "roman.snitko@gmail.com"
   s.executables = ["straight-console", "straight-server", "straight-server-benchmark"]
@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
     "db/migrations/018_add_test_keychain_id_to_gateways.rb",
     "db/migrations/019_add_test_pubkey_to_gateways.rb",
     "db/migrations/020_add_test_mode_to_orders.rb",
+    "db/migrations/021_add_fields_for_after_payment_redirect.rb",
     "db/schema.rb",
     "examples/client/client.dart",
     "examples/client/client.html",
@@ -114,6 +115,8 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<httparty>, [">= 0"])
       s.add_runtime_dependency(%q<redis>, [">= 0"])
       s.add_runtime_dependency(%q<btcruby>, [">= 0"])
+      s.add_runtime_dependency(%q<socket.io-client-simple>, [">= 0"])
+      s.add_runtime_dependency(%q<celluloid>, [">= 0"])
       s.add_development_dependency(%q<byebug>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 2.0.1"])
@@ -133,6 +136,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bundler>, ["~> 1.0"])
       s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_dependency(%q<github_api>, ["= 0.11.3"])
+      s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
+      s.add_dependency(%q<celluloid>, [">= 0"])
     end
   else
     s.add_dependency(%q<straight>, ["= 1.0.0"])
@@ -149,6 +154,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bundler>, ["~> 1.0"])
     s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
     s.add_dependency(%q<github_api>, ["= 0.11.3"])
+    s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
+    s.add_dependency(%q<celluloid>, [">= 0"])
   end
 end
 

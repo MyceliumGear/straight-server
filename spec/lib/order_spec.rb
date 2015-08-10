@@ -31,7 +31,13 @@ RSpec.describe StraightServer::Order do
 
   it "prepares data as http params" do
     allow(@order).to receive(:tid).and_return("tid1")
-    expect(@order.to_http_params).to eq("order_id=#{@order.id}&amount=10&amount_in_btc=#{@order.amount_in_btc(as: :string)}&amount_paid_in_btc=#{@order.amount_in_btc(field: @order.amount_paid, as: :string)}&status=#{@order.status}&address=#{@order.address}&tid=tid1&keychain_id=#{@order.keychain_id}&last_keychain_id=#{@order.gateway.last_keychain_id}")
+    expect(@order.to_http_params).to eq(
+      "order_id=#{@order.id}&amount=10&amount_in_btc=#{@order.amount_in_btc(as: :string)}&" \
+      "amount_paid_in_btc=#{@order.amount_in_btc(field: @order.amount_paid, as: :string)}&" \
+      "status=#{@order.status}&address=#{@order.address}&tid=tid1&keychain_id=#{@order.keychain_id}&" \
+      "last_keychain_id=#{@order.gateway.last_keychain_id}&after_payment_redirect_to=#{@order.after_payment_redirect_to}&" \
+      "auto_redirect=#{@order.auto_redirect}"
+    )
   end
 
   it "generates a payment_id" do

@@ -8,48 +8,7 @@ module StraightServer
 
     @@websockets = {}
 
-    class CallbackUrlBadResponse     < StraightServerError; end
-    class WebsocketExists            < StraightServerError; end
-    class WebsocketForCompletedOrder < StraightServerError; end
-    class GatewayInactive            < StraightServerError; end
-    class NoBlockchainAdapters       < StraightServerError
-      def message
-        "No blockchain adapters were found! StraightServer cannot query the blockchain.\n" +
-        "Check your ~/.straight/config.yml file and make sure valid blockchain adapters\n" +
-        "are present."
-      end
-    end
-    class NoWebsocketsForNewGateway  < StraightServerError
-      def message
-        "You're trying to get access to websockets on a Gateway that hasn't been saved yet"
-      end
-    end
-    class OrderCountersDisabled      < StraightServerError
-      def message
-        "Please enable order counting in config file! You can do is using the following option:\n\n" +
-        "  count_orders: true\n\n" +
-        "and don't forget to provide Redis connection info by adding this to the config file as well:\n\n" +
-        "  redis:\n" +
-        "    host: localhost\n" +
-        "    port: 6379\n" +
-        "    db:   null\n"
-      end
-    end
-    class NoPubkey < StraightServerError
-      def message
-        "No public key were found! Gateway can't work without it.\n" +
-        "Please provide it in config file or DB."
-      end
-    end
-    class NoTestPubkey < StraightServerError
-      def message
-        "No test public key were found! Gateway can't work in test mode without it.\n" +
-        "Please provide it in config file or DB."
-      end
-    end
-
     CALLBACK_URL_ATTEMPT_TIMEFRAME = 3600 # seconds
-
 
     ############# Initializers methods ########################################################
     # We have separate methods, because with GatewayOnDB they are called from #after_initialize
@@ -120,7 +79,10 @@ module StraightServer
 
     # Creates a new order and saves into the DB. Checks if the MD5 hash
     # is correct first.
-    def create_order(attrs={})
+    def create_order(attributes = {})
+      # TODO: don't use hash attributes as an internal changeable variable.
+      # It also changes in the function where it was called.
+      attrs = attributes.dup
 
       raise GatewayInactive unless self.active
 
@@ -129,13 +91,9 @@ module StraightServer
       # If we decide to reuse the order, we simply need to supply the
       # keychain_id that was used in the order we're reusing.
       # The address will be generated correctly.
-      if reused_order = find_reusable_order
-        attrs[:keychain_id] = reused_order.keychain_id
-
-      end
-      
+      reused_order = find_reusable_order
+      attrs[:keychain_id] = reused_order.keychain_id if reused_order
       attrs[:keychain_id] = nil if attrs[:keychain_id] == ''
-
 
       order = new_order(
         amount:           (attrs[:amount] && attrs[:amount].to_f),
@@ -143,6 +101,9 @@ module StraightServer
         currency:         attrs[:currency],
         btc_denomination: attrs[:btc_denomination]
       )
+
+      attrs[:after_payment_redirect_to] ||= after_payment_redirect_to
+      attrs[:auto_redirect] ||= auto_redirect
 
       order.id            = attrs[:id].to_i       if attrs[:id]
       order.data          = attrs[:data]          if attrs[:data]
@@ -152,11 +113,14 @@ module StraightServer
       order.gateway       = self
       order.test_mode     = test_mode
       order.description   = attrs[:description]
+      order.auto_redirect = attrs[:auto_redirect] if attrs[:auto_redirect]
+      order.after_payment_redirect_to = attrs[:after_payment_redirect_to] if attrs[:after_payment_redirect_to]
       order.reused        = reused_order.reused + 1 if reused_order
       order.save
 
       self.update_last_keychain_id(attrs[:keychain_id]) unless order.reused > 0
       self.save
+      Celluloid.publish("add_address_for_monit", order.address)
       StraightServer.logger.info "Order #{order.id} created: #{order.to_h}"
       order
     end
@@ -513,6 +477,9 @@ module StraightServer
     # it will keep checking on the existing ones.
     attr_accessor :active
 
+    attr_accessor :after_payment_redirect_to
+    attr_accessor :auto_redirect
+
     def self.find_by_hashed_id(s)
       self.find_by_id(s)
     end
@@ -591,6 +558,8 @@ module StraightServer
         gateway.secret                      = attrs['secret']
         gateway.check_signature             = attrs['check_signature']
         gateway.callback_url                = attrs['callback_url']
+        gateway.after_payment_redirect_to   = attrs['after_payment_redirect_to']
+        gateway.auto_redirect               = attrs['auto_redirect']
         gateway.default_currency            = attrs['default_currency']
         gateway.orders_expiration_period    = attrs['orders_expiration_period']
         gateway.active                      = attrs['active']

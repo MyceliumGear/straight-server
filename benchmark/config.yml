@@ -25,6 +25,8 @@ gateways:
     secret: 'secret'
     check_signature: false
     callback_url: 'http://localhost:3000/my_app/payment_callback'
+    after_payment_redirect_to: 'http://localhost:3000/my_app/my_own_page'
+    auto_redirect: false
     default_currency: 'BTC'
     orders_expiration_period: 600 # seconds
 
