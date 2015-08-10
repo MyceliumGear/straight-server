@@ -42,8 +42,8 @@ RSpec.configure do |config|
     end
 
     # Clear Gateway's order counters in Redis
-    Redis.current.keys("#{StraightServer::Config.redis[:prefix]}*").each do |k|
-      Redis.current.del k
+    StraightServer.redis_connection.keys("#{StraightServer::Config.redis[:prefix]}*").each do |k|
+      StraightServer.redis_connection.del k
     end
 
   end
