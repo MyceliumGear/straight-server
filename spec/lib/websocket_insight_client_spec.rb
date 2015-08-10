@@ -36,9 +36,13 @@ RSpec.describe StraightServer::WebsocketInsightClient do
   end
 
   it "raise error on bad url" do
+    Celluloid.logger = nil
+
     expect {
       StraightServer::WebsocketInsightClient.new("wss://wrong.ad")
     }.to raise_error(SocketError)
+
+    Celluloid.logger = StraightServer::Logger.new
   end
-  
+
 end
