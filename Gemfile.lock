@@ -222,6 +222,3 @@ DEPENDENCIES
   straight (= 1.0.0)!
   timecop
   webmock
-
-BUNDLED WITH
-   1.10.6

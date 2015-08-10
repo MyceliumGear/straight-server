@@ -135,39 +135,34 @@ module StraightServer
 
           case "#{@method} #{@env['REQUEST_PATH']}"
 
-            # Called create action. Example:
-            #
             # POST /gateways/:gateway_id/orders
+            # POST /gateways/:gateway_hashed_id/orders
             #
-            when /\APOST \/gateways\/(\d+)\/orders\Z/
+            when %r{\APOST /gateways/([^/]+)/orders\Z}
               create
 
-            # Called show action. Example:
+            # GET /gateways/:gateway_id/orders/:order_id
+            # GET /gateways/:gateway_hashed_id/orders/:order_payment_id
             #
-            # GET /gateways/:gateway_id/orders/:value
-            #
-            when /\AGET \/gateways\/(\d+)\/orders\/([^\/]+)\Z/
+            when %r{\AGET /gateways/([^/]+)/orders/([^/]+)\Z}
               show
 
-            # Called websocket action. Example:
+            # GET /gateways/:gateway_id/orders/:order_id/websocket
+            # GET /gateways/:gateway_hashed_id/orders/:order_payment_id/websocket
             #
-            # GET /gateways/:gateway_id/orders/:value/websocket
-            #
-            when /\AGET \/gateways\/(\d+)\/orders\/([^\/]+)\/websocket\Z/
+            when %r{\AGET /gateways/([^/]+)/orders/([^/]+)/websocket\Z}
               websocket
 
-            # Called cancel action. Example:
+            # POST /gateways/:gateway_id/orders/:order_id/cancel
+            # POST /gateways/:gateway_hashed_id/orders/:order_payment_id/cancel
             #
-            # POST /gateways/:gateway_id/orders/:value/cancel
-            #
-            when /\APOST \/gateways\/(\d+)\/orders\/([^\/]+)\/cancel\Z/
+            when %r{\APOST /gateways/([^/]+)/orders/([^/]+)/cancel\Z}
               cancel
 
-            # Called last_keychain_id action. Example:
-            #
             # GET /gateways/:gateway_id/last_keychain_id
+            # GET /gateways/:gateway_hashed_id/last_keychain_id
             #
-            when /\AGET \/gateways\/(\d+)\/last_keychain_id\Z/
+            when %r{\AGET /gateways/([^/]+)/last_keychain_id\Z}
               last_keychain_id
 
             else

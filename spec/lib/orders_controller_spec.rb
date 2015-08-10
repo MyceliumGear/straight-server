@@ -1,6 +1,8 @@
 require 'spec_helper'
+require 'support/logger_context'
 
 RSpec.describe StraightServer::OrdersController do
+  include_context :logger
 
   before(:each) do
     DB.run("DELETE FROM orders")
@@ -17,6 +19,20 @@ RSpec.describe StraightServer::OrdersController do
       allow(StraightServer::Thread).to receive(:new) # ignore periodic status checks, we're not testing it here
       send_request "POST", '/gateways/2/orders', amount: 10
       expect(response).to render_json_with(status: 0, amount: 10, address: "address1", tid: nil, id: :anything, keychain_id: @gateway.last_keychain_id, last_keychain_id: @gateway.last_keychain_id)
+    end
+
+    it "creates order from gateway on DB and render 200 HTTP status" do
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
+
+      gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
+
+      allow(StraightServer::Thread).to receive(:new) # ignore periodic status checks, we're not testing it here
+      send_request "POST", "/gateways/#{gateway.hashed_id}/orders", amount: 15
+
+      expect(response[0]).to eq(200)
+      expect(response).to render_json_with(status: 0, amount: 15, tid: nil, id: :anything)
+
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
     end
 
     it "renders 409 error when an order cannot be created due to invalid amount" do
@@ -142,6 +158,20 @@ RSpec.describe StraightServer::OrdersController do
       expect(response[0]).to eq(404)
       expect(response[2]).to eq("Gateway not found")
     end
+
+    it "shows order that was created from gateway on DB" do
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
+
+      gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
+      order = create(:order, gateway_id: gateway.id)
+
+      stub_request(:any, /(.*)/).to_return(status: 200, body: '{}', headers: {})
+      send_request "GET", "/gateways/#{gateway.hashed_id}/orders/#{order.id}"
+      expect(response).to render_json_with(status: order.status, amount: order.amount, tid: nil, id: order.id)
+
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
+    end
+
   end
 
   describe "websocket action" do
@@ -191,6 +221,18 @@ RSpec.describe StraightServer::OrdersController do
       expect(response[0]).to eq(404)
       expect(response[2]).to eq("Gateway not found")
     end
+
+    it "finds order that was created from gateway on DB" do
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
+
+      gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
+      order = create(:order, gateway_id: gateway.id)
+
+      send_request "GET", "/gateways/#{gateway.hashed_id}/orders/#{order.id}/websocket"
+      expect(response).to eq("ws rack response")
+
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
+    end
   end
 
   describe "cancel action" do
@@ -235,6 +277,19 @@ RSpec.describe StraightServer::OrdersController do
       expect(response[0]).to eq(404)
       expect(response[2]).to eq("Gateway not found")
     end
+
+    it "cancels order that was created from gateway on DB" do
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
+
+      gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
+      order = create(:order, gateway_id: gateway.id)
+
+      stub_request(:any, /(.*)/).to_return(status: 200, body: '{}', headers: {})
+      send_request "POST", "/gateways/#{gateway.hashed_id}/orders/#{order.id}/cancel"
+      expect(response[0]).to eq 200
+
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
+    end
   end
 
   describe "last_keychain_id action" do
@@ -253,6 +308,20 @@ RSpec.describe StraightServer::OrdersController do
       expect(response[0]).to eq(404)
       expect(response[2]).to eq("Gateway not found")
     end
+
+
+    it "return last_keychain_id for order that was created from gateway on DB" do
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
+
+      gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
+
+      send_request "GET", "/gateways/#{gateway.hashed_id}/last_keychain_id"
+      expect(response[0]).to eq(200)
+      expect(response).to render_json_with(gateway_id: gateway.id, last_keychain_id: gateway.last_keychain_id)
+
+      run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
+    end
+
   end
 
   def send_request(method, path, params={})
