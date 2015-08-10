@@ -1,5 +1,4 @@
 require_relative 'throttler'
-require_relative 'signature_validator'
 
 module StraightServer
 
