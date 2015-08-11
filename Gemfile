@@ -1,5 +1,5 @@
 source 'https://rubygems.org' do
-  gem 'straight', '1.0.0' #, path: '../straight-engine'
+  gem 'straight', '1.0.0' #, path: '../straight'
   gem 'satoshi-unit', '>= 0.1.8'
   gem 'goliath'
   gem 'faye-websocket'
@@ -10,7 +10,6 @@ source 'https://rubygems.org' do
   gem 'httparty'
   gem 'redis'
   gem 'btcruby'
-  gem 'celluloid'
 end
 
 unless ENV['STRAIGHT_SERVER_IGNORE_ADDONS_GEMFILE'] # use this flag when building straight-server.gemspec
