@@ -120,7 +120,8 @@ module StraightServer
 
       self.update_last_keychain_id(attrs[:keychain_id]) unless order.reused > 0
       self.save
-      Celluloid.publish("add_address_for_monit", order.address)
+      StraightServer.insight_client.add_address("", order.address) if StraightServer.insight_client
+      # Celluloid.publish("add_address_for_monit", order.address)
       StraightServer.logger.info "Order #{order.id} created: #{order.to_h}"
       order
     end
