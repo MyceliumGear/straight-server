@@ -207,7 +207,7 @@ module StraightServer
     
     def open_ws_connect
       Celluloid.boot
-      StraightServer::WebsocketInsightClient.new(Config.insight_websocket_url) if Config.insight_websocket_url
+      StraightServer.insight_client = StraightServer::WebsocketInsightClient.new(Config.insight_websocket_url) if Config.insight_websocket_url
     rescue SocketError
       StraightServer.logger.warn "Please check correctness of insight_websocket_url in config file."
     end

@@ -139,19 +139,19 @@ RSpec.describe StraightServer::Order do
 
       it "doesn't save order if the order with the same id exists" do
         order = create(:order, gateway_id: @gateway.id)
-        expect( -> { create(:order, id: order.id, gateway_id: @gateway.id) }).to raise_error()
+        expect( -> { create(:order, id: order.id, gateway_id: @gateway.id) }).to raise_error(Sequel::ValidationFailed)
       end
 
       it "doesn't save order if the amount is invalid" do
-        expect( -> { create(:order, amount: 0) }).to raise_error()
+        expect( -> { create(:order, amount: 0) }).to raise_error(Sequel::ValidationFailed)
       end
 
       it "doesn't save order if gateway_id is invalid" do
-        expect( -> { create(:order, gateway_id: 0) }).to raise_error()
+        expect( -> { create(:order, gateway_id: 0) }).to raise_error(Sequel::ValidationFailed)
       end
 
       it "doesn't save order if description is too long" do
-        expect( -> { create(:order, description: ("text" * 100)) }).to raise_error()
+        expect( -> { create(:order, description: ("text" * 100)) }).to raise_error(Sequel::ValidationFailed)
       end
 
     end

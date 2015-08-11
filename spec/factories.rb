@@ -16,4 +16,15 @@ FactoryGirl.define do
     end
   end
 
+  factory :gateway_on_db, class: StraightServer::GatewayOnDB do
+    confirmations_required 0
+    pubkey 'xpub6Arp6y5VVQzq3LWTHz7gGsGKAdM697RwpWgauxmyCybncqoAYim6P63AasNKSy3VUAYXFj7tN2FZ9CM9W7yTfmerdtAPU4amuSNjEKyDeo6'
+    order_class 'StraightServer::Order'
+    secret 'secret'
+    name { |i| "name_#{i}" }
+    check_signature false
+    exchange_rate_adapter_names %w(Bitpay Coinbase Bitstamp)
+    active true
+  end
+
 end

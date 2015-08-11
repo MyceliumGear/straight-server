@@ -168,7 +168,8 @@ module StraightServer
       end
       StraightServer.logger.info "Checking status of order #{self.id}"
       super
-      Celluloid.publish("remove_address_from_monit", self.address) if self.status >= 2
+      # Celluloid.publish("remove_address_from_monit", self.address) if self.status >= 2
+      StraightServer.insight_client.remove_address("", self.address) if self.status >= 2 && StraightServer.insight_client
     end
 
     def time_left_before_expiration
