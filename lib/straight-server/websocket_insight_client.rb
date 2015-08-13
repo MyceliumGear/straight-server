@@ -1,28 +1,24 @@
 module StraightServer
   class WebsocketInsightClient
-    include Celluloid
-    include Celluloid::Notifications
 
     attr_reader :address_monit_list
 
     def initialize(url)
-      @address_monit_list = []
+      @address_monit_list = {}
       connect(url)
-      subscribe "add_address_for_monit", :add_address
-      subscribe "remove_address_from_monit", :remove_address
-      subscribe "ws_check_transaction", :check_transaction
     end
 
     def connect(url)
       socket = SocketIO::Client::Simple.connect url
+      this = self
 
       socket.on :connect do
         StraightServer.logger.info "Connected to Insight websocket with url: #{url}"
         socket.emit :subscribe, 'inv'
       end
-
+      
       socket.on :tx do |data|
-        Celluloid.publish("ws_check_transaction", data ) if data["vout"]
+        this.check_transaction(data) if data["vout"]
       end
 
       socket.on :error do |err|
@@ -30,22 +26,22 @@ module StraightServer
       end
     end
 
-    def add_address(topic, address)
-      @address_monit_list.push(address).uniq!
+    def add_address(address, &block)
+      @address_monit_list[address] = block unless @address_monit_list.has_key? address
       StraightServer.logger.info "[WS] Added address for tracking: #{@address_monit_list}"
     end
 
-    def remove_address(topic, address)
+    def remove_address(address)
       @address_monit_list.delete(address)
     end
     
-    def check_transaction(topic, data)
+    def check_transaction(data)
       return if @address_monit_list.empty?
       data["vout"].each do |o|
-        if index = @address_monit_list.find_index(o.keys.first)
-          address = @address_monit_list.delete_at(index)
+        address = o.keys.first
+        if res = @address_monit_list[address]
           StraightServer.logger.info "[WS] Found transaction for address: #{address}"
-          StraightServer::Order.set_status_for(address, data)
+          res.call(data)
         end
       end
     end

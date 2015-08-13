@@ -9,7 +9,6 @@ require 'sequel'
 require 'logmaster'
 require 'straight'
 require 'socket.io-client-simple'
-require 'celluloid/current'
 
 Sequel.extension :migration
 

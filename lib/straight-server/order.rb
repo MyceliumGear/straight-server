@@ -64,20 +64,15 @@ module StraightServer
       self[:status] = @status
     end
 
-    def self.set_status_for(address, data)
-      order = find_by_address(address)
-      gateway = order.gateway
-      return if gateway.confirmations_required != 0 || order[:status] >= 2
+    def set_data_from_ws(data)
+      gateway = self.gateway
+      return if gateway.confirmations_required != 0 || self.status >= 2
       amount_paid = 0
       data["vout"].map { |el| amount_paid += el[address].to_i }
       
-      order.tid = data["txid"].to_s
-      order.amount_paid = amount_paid
-      order.status = order[:status] = order.define_status(amount_paid, order.amount)
-      order.db.transaction do
-        order.save
-        order.db.after_commit { gateway.order_status_changed(order) }
-      end
+      self.tid = data["txid"].to_s
+      self.amount_paid = amount_paid
+      self.status = define_status(amount_paid, self.amount)
     end
 
     def cancelable?
@@ -168,8 +163,7 @@ module StraightServer
       end
       StraightServer.logger.info "Checking status of order #{self.id}"
       super
-      # Celluloid.publish("remove_address_from_monit", self.address) if self.status >= 2
-      StraightServer.insight_client.remove_address("", self.address) if self.status >= 2 && StraightServer.insight_client
+      StraightServer.insight_client.remove_address(self.address) if self.status >= 2 && StraightServer.insight_client
     end
 
     def time_left_before_expiration
