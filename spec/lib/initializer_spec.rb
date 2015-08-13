@@ -70,8 +70,6 @@ RSpec.describe StraightServer::Initializer do
     expect(@initializer.create_logger).to be_kind_of(StraightServer::Logger)
   end
 
-  it "runs migrations"
-
   it "loads addons" do
     create_config_files
     FileUtils.ln_sf(File.expand_path(File.join(ENV['HOME'], '../fixtures/addons.yml')), File.expand_path(File.join(ENV['HOME'], '../tmp/.straight/addons.yml')))
