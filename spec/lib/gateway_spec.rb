@@ -48,11 +48,10 @@ RSpec.describe StraightServer::Gateway do
     gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 50)
   end
 
-  it "only warns about an invalid Bitcoin address, but doesn't fail", one: true do
+  it "only warns about an invalid Bitcoin address, but doesn't fail" do
     expect(StraightServer.logger).to receive(:warn) 
-    allow_any_instance_of(Straight::Blockchain::MyceliumAdapter).to receive(:api_request).and_return(nil)
-    allow_any_instance_of(Straight::Blockchain::InsightAdapter).to receive(:api_request).and_return(nil)
-    # mainnet Bitcoin address, while we're on testnet
+    allow_any_instance_of(Straight::BlockchainAdaptersDispatcher).to receive(:run_requests).
+      and_raise(Straight::Blockchain::Adapter::BitcoinAddressInvalid)
     expect(@gateway.fetch_transactions_for('12X3JTpcGPS1GXmuJn9gT3gspP6YFsFT6W')).to eq([])
   end
 
