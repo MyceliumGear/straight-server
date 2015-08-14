@@ -165,7 +165,8 @@ RSpec.describe StraightServer::OrdersController do
       gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
       order = create(:order, gateway_id: gateway.id)
 
-      stub_request(:any, /(.*)/).to_return(status: 200, body: '{}', headers: {})
+      stub_request(:any, /(.*)/).to_return(status: 200, body: '{"transactions": [], "txs": []}', headers: {})
+
       send_request "GET", "/gateways/#{gateway.hashed_id}/orders/#{order.id}"
       expect(response).to render_json_with(status: order.status, amount: order.amount, tid: nil, id: order.id)
 
@@ -284,7 +285,7 @@ RSpec.describe StraightServer::OrdersController do
       gateway = StraightServer::GatewayOnDB.last || build(:gateway_on_db).save
       order = create(:order, gateway_id: gateway.id)
 
-      stub_request(:any, /(.*)/).to_return(status: 200, body: '{}', headers: {})
+      stub_request(:any, /(.*)/).to_return(status: 200, body: '{"transactions": [], "txs": []}', headers: {})
       send_request "POST", "/gateways/#{gateway.hashed_id}/orders/#{order.id}/cancel"
       expect(response[0]).to eq 200
 

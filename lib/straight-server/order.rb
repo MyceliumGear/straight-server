@@ -73,6 +73,7 @@ module StraightServer
       self.tid = data["txid"].to_s
       self.amount_paid = amount_paid
       self.status = define_status(amount_paid, self.amount)
+      self.save
     end
 
     def cancelable?

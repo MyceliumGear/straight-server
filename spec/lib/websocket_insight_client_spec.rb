@@ -24,8 +24,9 @@ RSpec.describe StraightServer::WebsocketInsightClient do
     expect(@insight_client.address_monit_list.keys).to eq([address])
   end
 
-  it "fills order data if transaction was found for a specific address", foc: true do
-    stub_request(:any, /(.*)/).to_return(:status => 200, :body => "{}", :headers => {})
+  it "fills order data if transaction was found for a specific address" do
+    allow_any_instance_of(StraightServer::Gateway).to receive(:fetch_transactions_for).and_return([])
+    stub_request(:get, /(.*)/).to_return(:status => 200, :body => '', :headers => {})
     data = {"txid"=>"fe0318641f3d79e8519abf4f1e84d6f01e1680f15c5c17ed9730f2bac0f8d60a", "valueOut"=>0.22735632, "vout"=>[{address =>14830000}, {"188UbhMD23Lbp25gJFBHQvjTLHD5SjLcjk"=>7905632}]}
     @insight_client.check_transaction(data)
     order = StraightServer::Order.find_by_address(address)
