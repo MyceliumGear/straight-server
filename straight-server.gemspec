@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Roman Snitko"]
-  s.date = "2015-08-07"
+  s.date = "2015-08-17"
   s.description = "Accepts orders via http, returns payment info via http or streams updates via websockets, stores orders in a DB"
   s.email = "roman.snitko@gmail.com"
   s.executables = ["straight-console", "straight-server", "straight-server-benchmark"]
@@ -64,6 +64,7 @@ Gem::Specification.new do |s|
     "examples/client/client.js",
     "lib/straight-server.rb",
     "lib/straight-server/config.rb",
+    "lib/straight-server/errors.rb",
     "lib/straight-server/gateway.rb",
     "lib/straight-server/initializer.rb",
     "lib/straight-server/logger.rb",
@@ -75,6 +76,7 @@ Gem::Specification.new do |s|
     "lib/straight-server/thread.rb",
     "lib/straight-server/throttler.rb",
     "lib/straight-server/utils/hash_string_to_sym_keys.rb",
+    "lib/straight-server/websocket_insight_client.rb",
     "lib/tasks/db.rake",
     "spec/.straight/config.yml",
     "spec/.straight/default_test_last_keychain_id",
@@ -90,8 +92,10 @@ Gem::Specification.new do |s|
     "spec/lib/thread_spec.rb",
     "spec/lib/throttle_spec.rb",
     "spec/lib/utils/hash_string_to_sym_keys.rb",
+    "spec/lib/websocket_insight_client_spec.rb",
     "spec/spec_helper.rb",
     "spec/support/custom_matchers.rb",
+    "spec/support/logger_context.rb",
     "straight-server.gemspec",
     "templates/addons.yml",
     "templates/config.yml"
@@ -109,13 +113,13 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<satoshi-unit>, [">= 0.1.8"])
       s.add_runtime_dependency(%q<goliath>, [">= 0"])
       s.add_runtime_dependency(%q<faye-websocket>, [">= 0"])
+      s.add_runtime_dependency(%q<socket.io-client-simple>, [">= 0"])
       s.add_runtime_dependency(%q<sequel>, [">= 0"])
       s.add_runtime_dependency(%q<logmaster>, ["= 0.1.5"])
       s.add_runtime_dependency(%q<ruby-hmac>, [">= 0"])
       s.add_runtime_dependency(%q<httparty>, [">= 0"])
       s.add_runtime_dependency(%q<redis>, [">= 0"])
       s.add_runtime_dependency(%q<btcruby>, [">= 0"])
-      s.add_runtime_dependency(%q<socket.io-client-simple>, [">= 0"])
       s.add_development_dependency(%q<byebug>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 2.0.1"])
@@ -125,6 +129,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<satoshi-unit>, [">= 0.1.8"])
       s.add_dependency(%q<goliath>, [">= 0"])
       s.add_dependency(%q<faye-websocket>, [">= 0"])
+      s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
       s.add_dependency(%q<sequel>, [">= 0"])
       s.add_dependency(%q<logmaster>, ["= 0.1.5"])
       s.add_dependency(%q<ruby-hmac>, [">= 0"])
@@ -135,13 +140,13 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bundler>, ["~> 1.0"])
       s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_dependency(%q<github_api>, ["= 0.11.3"])
-      s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
     end
   else
     s.add_dependency(%q<straight>, ["= 1.0.0"])
     s.add_dependency(%q<satoshi-unit>, [">= 0.1.8"])
     s.add_dependency(%q<goliath>, [">= 0"])
     s.add_dependency(%q<faye-websocket>, [">= 0"])
+    s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
     s.add_dependency(%q<sequel>, [">= 0"])
     s.add_dependency(%q<logmaster>, ["= 0.1.5"])
     s.add_dependency(%q<ruby-hmac>, [">= 0"])
@@ -152,7 +157,6 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bundler>, ["~> 1.0"])
     s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
     s.add_dependency(%q<github_api>, ["= 0.11.3"])
-    s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
   end
 end
 
