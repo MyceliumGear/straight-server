@@ -85,22 +85,25 @@ gateways:
 # but you are free to create your own and put a fully qualified class name below. The order is,
 # of course, important.
 blockchain_adapters:
-  - name: BlockchainInfo # uses Straight::Blockchain::BlockchainInfoAdapter
-  - name: Mycelium       # uses Straight::Blockchain::MyceliumAdapter
-  - name: Insight        # uses Straight::Blockchain::InsightAdapter
-  - name: ChainCom       # uses Straight::Blockchain::ChainComAdapter
+  # Uses Straight::Blockchain::BlockchainInfoAdapter
+  - name: BlockchainInfo
+  # Uses Straight::Blockchain::MyceliumAdapter
+  - name: Mycelium
+  # Uses Straight::Blockchain::InsightAdapter
+  - name: Insight
+    # If Insight adapter is enabled, it is necessary to provide a url for it.
+    main_url: 'https://localhost/api'
+    # You can also set a testnet insight url to use:
+    test_url: 'https://test.localhost/api'
+    # Websocket Insight Url
+    # Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
+    # for gateways and orders without confirmation required (eq to 0).
+    websocket_url: 'wss://insight.mycelium.com'
+  # Uses Straight::Blockchain::ChainComAdapter
+  - name: ChainCom
     api_key_id: my_chain_com_api_key_id
+  # Uses your custom adapter
 #  - name: MyCustomClass::MyCustomBlockchainAdapter
-
-# If Insight adapter is enabled, it is necessary to provide a url for it.
-#   insight_url: "https://localhost/api"
-# You can also set a testnet insight url to use:
-#   insight_test_url: "https://test.localhost/api"
-
-# Websocket Insight Url
-# Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
-# for gateways and orders without confirmation required (eq to 0).
-# insight_websocket_url: "wss://localhost:4000"
 
 logmaster:
   log_level: INFO # Wise to change to WARN for production

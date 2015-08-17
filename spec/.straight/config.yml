@@ -44,16 +44,14 @@ gateways:
 
 blockchain_adapters:
   - name: Insight
+    main_url: 'https://insight.mycelium.com/api'
+    test_url: 'https://test-insight.bitpay.com/api'
+    websocket_url: 'wss://insight.mycelium.com'
   - name: BlockchainInfo
   - name: Mycelium
   - name: ChainCom
     api_key_id: e9868197f9a319dae135e01fba07cfcc
 
-insight_url: "https://insight.mycelium.com/api"
-insight_test_url: "https://test-insight.bitpay.com/api"
-
-insight_websocket_url: "wss://insight.mycelium.com"
-  
 db:
   adapter: sqlite
   name: straight.db

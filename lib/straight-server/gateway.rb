@@ -40,9 +40,7 @@ module StraightServer
           when 'ChainCom'
             adapter.mainnet_adapter(api_key_id: a['api_key_id'])
           when 'Insight'
-            main_url = StraightServer::Config.__send__("#{a['name'].downcase}_url")
-            test_url = StraightServer::Config.__send__("#{a['name'].downcase}_test_url")
-            adapter.mainnet_adapter(main_url: main_url, test_url: test_url)
+            adapter.mainnet_adapter(main_url: a['main_url'], test_url: a['test_url'])
           else
             adapter.mainnet_adapter
           end
