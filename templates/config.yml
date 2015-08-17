@@ -85,10 +85,12 @@ gateways:
 # but you are free to create your own and put a fully qualified class name below. The order is,
 # of course, important.
 blockchain_adapters:
-  - BlockchainInfo # uses Straight::Blockchain::BlockchainInfoAdapter
-  - Mycelium       # uses Straight::Blockchain::MyceliumAdapter
-  # - InsightAdapter # uses Straight::Blockchain::InsightAdapter
-  # - MyCustomClass::MyCustomBlockchainAdapter
+  - name: BlockchainInfo # uses Straight::Blockchain::BlockchainInfoAdapter
+  - name: Mycelium       # uses Straight::Blockchain::MyceliumAdapter
+  - name: Insight        # uses Straight::Blockchain::InsightAdapter
+  - name: ChainCom       # uses Straight::Blockchain::ChainComAdapter
+    api_key_id: my_chain_com_api_key_id
+#  - name: MyCustomClass::MyCustomBlockchainAdapter
 
 # If Insight adapter is enabled, it is necessary to provide a url for it.
 #   insight_url: "https://localhost/api"

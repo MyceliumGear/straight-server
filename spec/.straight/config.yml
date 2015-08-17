@@ -43,9 +43,11 @@ gateways:
     active: true
 
 blockchain_adapters:
-  - Insight
-  - BlockchainInfo
-  - Mycelium
+  - name: Insight
+  - name: BlockchainInfo
+  - name: Mycelium
+  - name: ChainCom
+    api_key_id: e9868197f9a319dae135e01fba07cfcc
 
 insight_url: "https://insight.mycelium.com/api"
 insight_test_url: "https://test-insight.bitpay.com/api"
