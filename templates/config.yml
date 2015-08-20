@@ -98,7 +98,7 @@ blockchain_adapters:
     # Websocket Insight Url
     # Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
     # for gateways and orders without confirmation required (eq to 0).
-    websocket_url: 'wss://insight.mycelium.com'
+    websocket_url: 'wss://localhost'
   # Uses Straight::Blockchain::ChainComAdapter
   ChainCom:
     api_key_id: my_chain_com_api_key_id
