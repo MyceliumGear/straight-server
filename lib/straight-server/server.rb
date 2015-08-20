@@ -9,6 +9,11 @@ module StraightServer
       super
       prepare
       StraightServer.logger.info "starting Straight Server v #{StraightServer::VERSION}"
+      at_exit do
+        if (ex = $!)
+          StraightServer.logger.fatal "#{ex.inspect}\n#{ex.backtrace.join("\n")}"
+        end
+      end
       require_relative 'order'
       require_relative 'gateway'
       load_addons
