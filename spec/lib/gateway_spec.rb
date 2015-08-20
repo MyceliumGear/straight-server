@@ -31,7 +31,8 @@ RSpec.describe StraightServer::Gateway do
     gateway = StraightServer::GatewayOnConfig.find_by_id(2)
     expect(gateway.blockchain_adapters.map(&:class)).to eq([Straight::Blockchain::InsightAdapter,
                                                             Straight::Blockchain::BlockchainInfoAdapter,
-                                                            Straight::Blockchain::MyceliumAdapter])
+                                                            Straight::Blockchain::MyceliumAdapter,
+                                                            Straight::Blockchain::ChainComAdapter])
   end
 
   it "loads Insight adapter with given host url" do

@@ -30,17 +30,21 @@ module StraightServer
 
     def initialize_blockchain_adapters
       @blockchain_adapters = []
-      StraightServer::Config.blockchain_adapters.each do |a|
+      StraightServer::Config.blockchain_adapters.each do |name, attrs|
 
-        adapter = Straight::Blockchain.const_get("#{a}Adapter")
+        adapter = Straight::Blockchain.const_get("#{name}Adapter")
         next unless adapter
-        begin
-          main_url = StraightServer::Config.__send__("#{a.downcase}_url") rescue next
-          test_url = StraightServer::Config.__send__("#{a.downcase}_test_url") rescue nil
-          @blockchain_adapters << adapter.mainnet_adapter(main_url: main_url, test_url: test_url)
-        rescue ArgumentError
-          @blockchain_adapters << adapter.mainnet_adapter
-        end
+
+        @blockchain_adapters <<
+          case name
+          when 'ChainCom'
+            adapter.mainnet_adapter(api_key_id: attrs['api_key_id'])
+          when 'Insight'
+            adapter.mainnet_adapter(main_url: attrs['mainnet_url'], test_url: attrs['testnet_url'])
+          else
+            adapter.mainnet_adapter
+          end
+
       end
       raise NoBlockchainAdapters if @blockchain_adapters.empty?
     end

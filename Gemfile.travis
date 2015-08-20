@@ -10,7 +10,7 @@ gem 'logmaster', '0.1.5'
 gem 'ruby-hmac'
 gem 'httparty'
 gem 'redis'
-gem 'btcruby'
+gem 'btcruby', '1.1.1'
 
 group :development do
   gem 'byebug'
