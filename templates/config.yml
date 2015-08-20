@@ -86,24 +86,24 @@ gateways:
 # of course, important.
 blockchain_adapters:
   # Uses Straight::Blockchain::BlockchainInfoAdapter
-  - name: BlockchainInfo
+  BlockchainInfo:
   # Uses Straight::Blockchain::MyceliumAdapter
-  - name: Mycelium
+  Mycelium:
   # Uses Straight::Blockchain::InsightAdapter
-  - name: Insight
+  Insight:
     # If Insight adapter is enabled, it is necessary to provide a url for it.
-    main_url: 'https://localhost/api'
+    mainnet_url: 'https://localhost/api'
     # You can also set a testnet insight url to use:
-    test_url: 'https://test.localhost/api'
+    testnet_url: 'https://test.localhost/api'
     # Websocket Insight Url
     # Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
     # for gateways and orders without confirmation required (eq to 0).
     websocket_url: 'wss://insight.mycelium.com'
   # Uses Straight::Blockchain::ChainComAdapter
-  - name: ChainCom
+  ChainCom:
     api_key_id: my_chain_com_api_key_id
   # Uses your custom adapter
-#  - name: MyCustomClass::MyCustomBlockchainAdapter
+  # MyCustomClass::MyCustomBlockchainAdapter:
 
 logmaster:
   log_level: INFO # Wise to change to WARN for production
