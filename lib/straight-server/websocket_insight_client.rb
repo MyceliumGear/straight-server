@@ -28,7 +28,7 @@ module StraightServer
 
     def add_address(address, &block)
       @address_monit_list[address] = block unless @address_monit_list.has_key? address
-      StraightServer.logger.info "[WS] Added address for tracking: #{@address_monit_list}"
+      StraightServer.logger.info "[WS] Added address for tracking: #{address}"
     end
 
     def remove_address(address)
