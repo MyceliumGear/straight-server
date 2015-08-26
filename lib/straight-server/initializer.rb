@@ -206,7 +206,10 @@ module StraightServer
     end
     
     def open_ws_connect
-      StraightServer.insight_client = StraightServer::WebsocketInsightClient.new(Config.insight_websocket_url) if Config.insight_websocket_url
+      websocket_url = StraightServer::Config.blockchain_adapters['Insight']['websocket_url']
+      if websocket_url
+        StraightServer.insight_client = StraightServer::WebsocketInsightClient.new(websocket_url)
+      end
     rescue SocketError
       StraightServer.logger.warn "Please check correctness of insight_websocket_url in config file."
     end

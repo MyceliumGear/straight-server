@@ -11,6 +11,11 @@ module StraightServer
       @initializer = Initializer.new
       @initializer.prepare
       StraightServer.logger.info "starting Straight Server v #{StraightServer::VERSION}"
+      at_exit do
+        if (ex = $!)
+          StraightServer.logger.fatal "#{ex.inspect}\n#{ex.backtrace.join("\n")}"
+        end
+      end
       @initializer.load_addons
       @initializer.open_ws_connect
       @initializer.initialize_routes
