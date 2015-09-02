@@ -54,7 +54,7 @@ blockchain_adapters:
 
 db:
   adapter: sqlite
-  name: straight.db
+  name: ''
 
 redis:
   host: localhost

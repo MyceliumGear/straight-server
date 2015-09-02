@@ -1,52 +1,57 @@
 module StraightServer
 
-  module Initializer
+  class Initializer
 
     GEM_ROOT = File.expand_path('../..', File.dirname(__FILE__))
     MIGRATIONS_ROOT = GEM_ROOT + '/db/migrations/'
 
+    attr_accessor :routes
+
     module ConfigDir
 
-      class << self
+      @@config_dir = nil
 
-        # Determine config dir or set default. Useful when we want to
-        # have different settings for production or staging or development environments.
-        def set!(path=nil)
-          @@config_dir = path and return if path
-          @@config_dir = ENV['HOME'] + '/.straight'
-          ARGV.each do |a|
-            if a =~ /\A--config-dir=.+/
-              @@config_dir = File.expand_path(a.sub('--config-dir=', ''))
-              break
-            elsif a =~ /\A-c .+/
-              @@config_dir = File.expand_path(a.sub('-c ', ''))
-              break
-            end
+      # Determine config dir or set default. Useful when we want to
+      # have different settings for production or staging or development environments.
+      def self.set!(path=nil)
+        return if @@config_dir && path.nil?
+        @@config_dir = path and return if path
+        @@config_dir = ENV['HOME'] + '/.straight'
+        ARGV.each do |a|
+          # FIXME: = can be space; space can absent in the short version
+          # FIXME: what if it's an argument for a parent project, where straight-server is just a library?
+          if a =~ /\A--config-dir=.+/
+            @@config_dir = File.expand_path(a.sub('--config-dir=', ''))
+            break
+          elsif a =~ /\A-c .+/
+            @@config_dir = File.expand_path(a.sub('-c ', ''))
+            break
           end
-          puts "Setting config dir to #{@@config_dir}"
         end
-
-        def path
-          @@config_dir
-        end
-
+        puts "Setting config dir to #{@@config_dir}"
       end
 
+      def self.path
+        @@config_dir
+      end
     end
 
-    def prepare
+    def prepare(run_migrations: true)
       ConfigDir.set!
       create_config_files
       read_config_file
       create_logger
       connect_to_db
-      run_migrations         if migrations_pending?
+      self.run_migrations if run_migrations && migrations_pending?
+      # DB connection should be established and tables should be present before the models definition
+      require_relative 'gateway'
+      GatewayOnConfig.load_from_config
+      require_relative 'order'
       setup_redis_connection
-      initialize_routes
     end
 
     def add_route(path, &block)
-      @routes[path] = block
+      (self.routes ||= {})[path] = block
     end
 
     def create_config_files
@@ -90,7 +95,7 @@ module StraightServer
       db_config = StraightServer::Config.db.keys_to_sym
 
       db_name = if db_config[:adapter] == 'sqlite'
-        ConfigDir.path + "/" + db_config[:name]
+        db_config[:name].empty? ? '' : "#{ConfigDir.path}/#{db_config[:name]}"
       else
         db_config[:name]
       end
@@ -103,6 +108,11 @@ module StraightServer
         "#{db_config[:port]}#{("/" if db_config[:host] || db_config[:port])}"         +
         "#{db_name}"
       )
+
+      StraightServer.db_connection.extension :connection_validator
+      StraightServer.db_connection.pool.connection_validation_timeout = 600
+
+      StraightServer.db_connection
     end
 
     def run_migrations
@@ -116,19 +126,20 @@ module StraightServer
     end
 
     def create_logger
+      # TODO: logging to STDOUT by default
       return unless Config.logmaster
       require_relative 'logger'
-      StraightServer.logger = StraightServer::Logger.new(
+      Straight.logger = StraightServer.logger = StraightServer::Logger.new(
         log_level:       ::Logger.const_get(Config.logmaster['log_level'].upcase),
-        file:            ConfigDir.path + '/' + Config.logmaster['file'],
+        file:            Config.logmaster['file'] && File.absolute_path(Config.logmaster['file'], ConfigDir.path),
         raise_exception: Config.logmaster['raise_exception'],
         name:            Config.logmaster['name'],
-        email_config:    Config.logmaster['email_config']
+        email_config:    Config.logmaster['email_config'],
+        logstash_config: Config.logmaster['logstash_config'],
       )
     end
 
     def initialize_routes
-      @routes = {}
       add_route %r{\A/gateways/.+?/orders(/.+)?\Z} do |env|
         controller = OrdersController.new(env)
         controller.response
@@ -186,7 +197,9 @@ module StraightServer
         else
           StraightServer.logger.info "Resuming tracking of order #{order.id}, current status is #{order.status}, time before expiration: #{order.time_left_before_expiration} seconds."
           StraightServer::Thread.new do
-            order.start_periodic_status_check
+            StraightServer.logger.watch_exceptions do
+              order.start_periodic_status_check
+            end
           end
         end
       end

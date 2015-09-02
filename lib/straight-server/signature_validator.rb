@@ -1,5 +1,4 @@
 require 'goliath/constants'
-require 'base64'
 
 module StraightServer
   class SignatureValidator

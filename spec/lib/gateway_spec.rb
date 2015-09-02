@@ -312,7 +312,7 @@ RSpec.describe StraightServer::Gateway do
 
     before(:each) do
       # clean the database
-      DB.run("DELETE FROM gateways")
+      StraightServer.db_connection.run("DELETE FROM gateways")
 
       @gateway = StraightServer::GatewayOnDB.new(
         confirmations_required: 0,
@@ -328,15 +328,15 @@ RSpec.describe StraightServer::Gateway do
     it "saves and retrieves last_keychain_id from the db" do
       @gateway.check_signature = false
       @gateway.save
-      expect(DB[:gateways][:name => 'default'][:last_keychain_id]).to eq(0)
+      expect(StraightServer.db_connection[:gateways][:name => 'default'][:last_keychain_id]).to eq(0)
       @gateway.update_last_keychain_id
       @gateway.save
       @gateway.refresh
-      expect(DB[:gateways][:name => 'default'][:last_keychain_id]).to eq(1)
+      expect(StraightServer.db_connection[:gateways][:name => 'default'][:last_keychain_id]).to eq(1)
 
       expect(@gateway).to receive(:new_order).with(@new_order_args.merge({ keychain_id: 2})).once.and_return(@order_mock)
       @gateway.create_order(amount: 1)
-      expect(DB[:gateways][:name => 'default'][:last_keychain_id]).to eq(2)
+      expect(StraightServer.db_connection[:gateways][:name => 'default'][:last_keychain_id]).to eq(2)
     end
 
     it "encryptes and decrypts the gateway secret" do
@@ -428,7 +428,7 @@ RSpec.describe StraightServer::Gateway do
 
         expect(@gateway).to receive(:new_order).with(@new_order_args).once.and_return(@order_mock)
         @gateway.create_order(amount: 1)
-        expect(DB[:gateways][:name => 'default'][:test_last_keychain_id]).to eq(1)
+        expect(StraightServer.db_connection[:gateways][:name => 'default'][:test_last_keychain_id]).to eq(1)
       end
       
       it "validate that test public key is provided when saving with test mode flag" do
