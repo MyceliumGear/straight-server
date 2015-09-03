@@ -1,5 +1,20 @@
 Sequel.migration do
   change do
+    create_table(:cashila, :ignore_index_errors=>true) do
+      primary_key :id
+      Integer :gateway_id, :null=>false
+      String :credentials, :text=>true
+      DateTime :created_at, :null=>false
+      DateTime :updated_at
+      
+      index [:gateway_id], :unique=>true
+      index [:id], :unique=>true
+    end
+    
+    create_table(:cashila_schema_info) do
+      Integer :version, :default=>0, :null=>false
+    end
+    
     create_table(:gateways, :ignore_index_errors=>true) do
       primary_key :id
       Integer :confirmations_required, :default=>0, :null=>false
@@ -26,6 +41,7 @@ Sequel.migration do
       String :test_pubkey, :size=>255
       String :after_payment_redirect_to, :text=>true
       TrueClass :auto_redirect, :default=>false
+      String :merchant_url, :text=>true
       
       index [:hashed_id]
       index [:id], :unique=>true

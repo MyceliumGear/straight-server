@@ -46,6 +46,7 @@ gateways:
     order_class: "StraightServer::Order"
     secret: 'secret'
     check_signature: false
+    merchant_url: 'http://localhost:3000/my_shop'
     callback_url: 'http://localhost:3000/my_app/payment_callback'
     default_currency: 'BTC'
     orders_expiration_period: 600 # seconds

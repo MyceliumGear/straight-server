@@ -484,6 +484,8 @@ module StraightServer
     attr_accessor :after_payment_redirect_to
     attr_accessor :auto_redirect
 
+    attr_accessor :merchant_url
+
     def self.find_by_hashed_id(s)
       self.find_by_id(s)
     end
@@ -561,6 +563,7 @@ module StraightServer
         gateway.order_class                 = attrs['order_class']
         gateway.secret                      = attrs['secret']
         gateway.check_signature             = attrs['check_signature']
+        gateway.merchant_url                = attrs['merchant_url']
         gateway.callback_url                = attrs['callback_url']
         gateway.after_payment_redirect_to   = attrs['after_payment_redirect_to']
         gateway.auto_redirect               = attrs['auto_redirect']
