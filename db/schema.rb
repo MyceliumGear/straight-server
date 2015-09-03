@@ -26,6 +26,7 @@ Sequel.migration do
       String :test_pubkey, :size=>255
       String :after_payment_redirect_to, :text=>true
       TrueClass :auto_redirect, :default=>false
+      String :merchant_url, :text=>true
       
       index [:hashed_id]
       index [:id], :unique=>true

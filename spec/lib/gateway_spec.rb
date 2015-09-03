@@ -237,11 +237,13 @@ RSpec.describe StraightServer::Gateway do
       expect(gateway1.confirmations_required).to eq(0)
       expect(gateway1.order_class).to eq("StraightServer::Order")
       expect(gateway1.name).to eq("default")
+      expect(gateway1.merchant_url).to eq("http://localhost:3000/my_shop")
 
       expect(gateway2.pubkey).to eq('xpub6AH1Ymkkrwk3TaMrVrXBCpcGajKc9a1dAJBTKr1i4GwYLgLk7WDvPtN1o1cAqS5DZ9CYzn3gZtT7BHEP4Qpsz24UELTncPY1Zsscsm3ajmX')
       expect(gateway2.confirmations_required).to eq(0)
       expect(gateway2.order_class).to eq("StraightServer::Order")
       expect(gateway2.name).to eq("second_gateway")
+      expect(gateway2.merchant_url).to eq("http://localhost:3000/my_second_shop")
     end
 
     it "saves and retrieves last_keychain_id from the file in the .straight dir" do

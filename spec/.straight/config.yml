@@ -25,6 +25,7 @@ gateways:
       - Bitstamp
     active: true
     test_mode: true
+    merchant_url: 'http://localhost:3000/my_shop'
   second_gateway:
     pubkey: 'xpub6AH1Ymkkrwk3TaMrVrXBCpcGajKc9a1dAJBTKr1i4GwYLgLk7WDvPtN1o1cAqS5DZ9CYzn3gZtT7BHEP4Qpsz24UELTncPY1Zsscsm3ajmX'
     confirmations_required: 0
@@ -41,6 +42,7 @@ gateways:
       - Coinbase
       - Bitstamp
     active: true
+    merchant_url: 'http://localhost:3000/my_second_shop'
 
 blockchain_adapters:
   Insight:
