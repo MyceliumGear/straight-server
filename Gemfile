@@ -11,7 +11,7 @@ source 'https://rubygems.org' do
   gem 'faye-websocket'
   gem 'socket.io-client-simple'
   gem 'sequel'
-  gem 'logmaster', github: 'AlexanderPavlenko/logmaster'
+  gem 'logmaster', '~> 0.2.0'
   gem 'ruby-hmac'
   gem 'httparty'
   gem 'redis'
@@ -25,7 +25,6 @@ end
 
 group :development do
   gem 'byebug'
-  gem 'bundler', '~> 1.0'
   gem 'jeweler', '~> 2.0.1'
   gem 'github_api', '0.11.3'
 end
