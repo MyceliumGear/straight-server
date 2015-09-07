@@ -76,7 +76,7 @@ GEM
     json (1.8.3)
     jwt (1.5.1)
     log4r (1.1.10)
-    logmaster (0.1.5)
+    logmaster (0.2.0)
       pony
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
@@ -154,7 +154,6 @@ PLATFORMS
 
 DEPENDENCIES
   btcruby (= 1.1.1)!
-  bundler (~> 1.0)
   byebug
   factory_girl
   faye-websocket!
@@ -163,7 +162,7 @@ DEPENDENCIES
   hashie
   httparty!
   jeweler (~> 2.0.1)
-  logmaster (= 0.1.5)!
+  logmaster (~> 0.2.0)!
   redis!
   rspec
   ruby-hmac!
