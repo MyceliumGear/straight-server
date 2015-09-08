@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Roman Snitko"]
-  s.date = "2015-08-17"
+  s.date = "2015-09-08"
   s.description = "Accepts orders via http, returns payment info via http or streams updates via websockets, stores orders in a DB"
   s.email = "roman.snitko@gmail.com"
   s.executables = ["straight-console", "straight-server", "straight-server-benchmark"]
@@ -20,9 +20,11 @@ Gem::Specification.new do |s|
     "README.md"
   ]
   s.files = [
+    ".dockerignore",
     ".document",
     ".rspec",
     ".travis.yml",
+    "Dockerfile",
     "Gemfile",
     "Gemfile.lock",
     "Gemfile.travis",
@@ -58,6 +60,7 @@ Gem::Specification.new do |s|
     "db/migrations/019_add_test_pubkey_to_gateways.rb",
     "db/migrations/020_add_test_mode_to_orders.rb",
     "db/migrations/021_add_fields_for_after_payment_redirect.rb",
+    "db/migrations/022_add_merchant_url.rb",
     "db/schema.rb",
     "examples/client/client.dart",
     "examples/client/client.html",
@@ -115,13 +118,12 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<faye-websocket>, [">= 0"])
       s.add_runtime_dependency(%q<socket.io-client-simple>, [">= 0"])
       s.add_runtime_dependency(%q<sequel>, [">= 0"])
-      s.add_runtime_dependency(%q<logmaster>, ["= 0.1.5"])
+      s.add_runtime_dependency(%q<logmaster>, ["~> 0.2.0"])
       s.add_runtime_dependency(%q<ruby-hmac>, [">= 0"])
       s.add_runtime_dependency(%q<httparty>, [">= 0"])
       s.add_runtime_dependency(%q<redis>, [">= 0"])
-      s.add_runtime_dependency(%q<btcruby>, [">= 0"])
+      s.add_runtime_dependency(%q<btcruby>, ["= 1.1.1"])
       s.add_development_dependency(%q<byebug>, [">= 0"])
-      s.add_development_dependency(%q<bundler>, ["~> 1.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_development_dependency(%q<github_api>, ["= 0.11.3"])
     else
@@ -131,13 +133,12 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<faye-websocket>, [">= 0"])
       s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
       s.add_dependency(%q<sequel>, [">= 0"])
-      s.add_dependency(%q<logmaster>, ["= 0.1.5"])
+      s.add_dependency(%q<logmaster>, ["~> 0.2.0"])
       s.add_dependency(%q<ruby-hmac>, [">= 0"])
       s.add_dependency(%q<httparty>, [">= 0"])
       s.add_dependency(%q<redis>, [">= 0"])
-      s.add_dependency(%q<btcruby>, [">= 0"])
+      s.add_dependency(%q<btcruby>, ["= 1.1.1"])
       s.add_dependency(%q<byebug>, [">= 0"])
-      s.add_dependency(%q<bundler>, ["~> 1.0"])
       s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_dependency(%q<github_api>, ["= 0.11.3"])
     end
@@ -148,13 +149,12 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<faye-websocket>, [">= 0"])
     s.add_dependency(%q<socket.io-client-simple>, [">= 0"])
     s.add_dependency(%q<sequel>, [">= 0"])
-    s.add_dependency(%q<logmaster>, ["= 0.1.5"])
+    s.add_dependency(%q<logmaster>, ["~> 0.2.0"])
     s.add_dependency(%q<ruby-hmac>, [">= 0"])
     s.add_dependency(%q<httparty>, [">= 0"])
     s.add_dependency(%q<redis>, [">= 0"])
-    s.add_dependency(%q<btcruby>, [">= 0"])
+    s.add_dependency(%q<btcruby>, ["= 1.1.1"])
     s.add_dependency(%q<byebug>, [">= 0"])
-    s.add_dependency(%q<bundler>, ["~> 1.0"])
     s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
     s.add_dependency(%q<github_api>, ["= 0.11.3"])
   end
