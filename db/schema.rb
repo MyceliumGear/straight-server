@@ -9,7 +9,7 @@ Sequel.migration do
       String :secret, :size=>255, :null=>false
       String :name, :size=>255, :null=>false
       String :default_currency, :default=>"BTC", :size=>255
-      String :callback_url, :size=>255
+      String :callback_url, :text=>true
       TrueClass :check_signature, :default=>false, :null=>false
       String :exchange_rate_adapter_names, :size=>255
       DateTime :created_at, :null=>false
@@ -51,7 +51,7 @@ Sequel.migration do
       Integer :reused, :default=>0
       String :callback_data, :size=>255
       Bignum :amount_paid
-      String :callback_url, :size=>255
+      String :callback_url, :text=>true
       String :title, :size=>255
       TrueClass :test_mode, :default=>false
       String :after_payment_redirect_to, :text=>true
