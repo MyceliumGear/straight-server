@@ -206,7 +206,7 @@ module StraightServer
     end
     
     def open_ws_connect
-      websocket_url = StraightServer::Config.blockchain_adapters['Insight']['websocket_url']
+      websocket_url = StraightServer::Config[:'blockchain_adapters.Insight.websocket_url']
       if websocket_url
         StraightServer.insight_client = StraightServer::WebsocketInsightClient.new(websocket_url)
       end
