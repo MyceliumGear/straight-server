@@ -86,17 +86,22 @@ module StraightServer
     end
 
     def websocket
+      ws = Faye::WebSocket.new(@env)
+
       order = find_order
       if order
         begin
-          @gateway.add_websocket_for_order ws = Faye::WebSocket.new(@env), order
-          ws.rack_response
-        rescue Gateway::WebsocketExists
-          [403, {}, "Someone is already listening to that order"]
-        rescue Gateway::WebsocketForCompletedOrder
-          [403, {}, "You cannot listen to this order because it is completed (status > 1)"]
+          @gateway.add_websocket_for_order(ws, order)
+        rescue => e
+          ws.send("error: #{e.message}")
+          ws.close
         end
+      else
+        ws.send('error: order not found')
+        ws.close
       end
+
+      ws.rack_response
     end
 
     def cancel

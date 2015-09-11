@@ -196,18 +196,22 @@ RSpec.describe StraightServer::OrdersController do
     end
 
     it "returns 403 when socket already exists" do
+      allow(@ws_mock).to receive(:send).with('error: someone is already listening to that order')
+      allow(@ws_mock).to receive(:close)
       allow(@order_mock).to receive(:status).and_return(0)
       allow(StraightServer::Order).to receive(:[]).with(1).twice.and_return(@order_mock)
       send_request "GET", '/gateways/2/orders/1/websocket'
       send_request "GET", '/gateways/2/orders/1/websocket'
-      expect(response).to eq([403, {}, "Someone is already listening to that order"])
+      expect(response).to eq("ws rack response")
     end
 
-    it "returns 403 when order has is completed (status > 1 )" do
+    it "returns 403 when order has is completed (status > 1)" do
+      allow(@ws_mock).to receive(:send).with('error: you cannot listen to this order because it is completed (status > 1)')
+      allow(@ws_mock).to receive(:close)
       allow(@order_mock).to receive(:status).and_return(2)
       allow(StraightServer::Order).to receive(:[]).with(1).and_return(@order_mock)
       send_request "GET", '/gateways/2/orders/1/websocket'
-      expect(response).to eq([403, {}, "You cannot listen to this order because it is completed (status > 1)"])
+      expect(response).to eq("ws rack response")
     end
 
     it "finds order by payment_id" do
