@@ -188,7 +188,7 @@ RSpec.describe StraightServer::Gateway do
 
       stub_request(:get, "http://new\"_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       @order.callback_url = "http://new\"_url?with=params"
-      expect { @gateway.order_status_changed(@order) }.not_to raise_error(URI::InvalidURIError)
+      expect { @gateway.order_status_changed(@order) }.not_to raise_error
     end
   end
 
