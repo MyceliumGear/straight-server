@@ -46,6 +46,7 @@ module StraightServer
       # DB connection should be established and tables should be present before the models definition
       require_relative 'gateway'
       GatewayOnConfig.load_from_config
+      require_relative 'transaction'
       require_relative 'order'
       setup_redis_connection
     end

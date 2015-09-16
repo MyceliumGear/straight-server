@@ -3,7 +3,10 @@ require 'spec_helper'
 RSpec.describe StraightServer::Gateway do
 
   before(:each) do
+    allow_any_instance_of(StraightServer::GatewayOnConfig).to receive(:fetch_latest_block_height).and_return(nil)
+
     @gateway = StraightServer::GatewayOnConfig.find_by_id(1)
+    @gateway2 = StraightServer::GatewayOnConfig.find_by_id(2)
     @new_order_args = { amount: 1, keychain_id: 1, currency: nil, btc_denomination: nil }
 
     @order_mock = double('order mock')
@@ -16,9 +19,8 @@ RSpec.describe StraightServer::Gateway do
   end
 
   it "sets order amount in satoshis calculated from another currency" do
-    @gateway = StraightServer::GatewayOnConfig.find_by_id(2)
-    allow(@gateway.exchange_rate_adapters.first).to receive(:rate_for).and_return(450.5412)
-    expect(@gateway.create_order(amount: 2252.706, currency: 'USD').amount).to eq(500000000)
+    allow(@gateway2.exchange_rate_adapters.first).to receive(:rate_for).and_return(450.5412)
+    expect(@gateway2.create_order(amount: 2252.706, currency: 'USD').amount).to eq(500000000)
   end
 
   it "doesn't allow to create a new order if the gateway is inactive" do
@@ -28,25 +30,22 @@ RSpec.describe StraightServer::Gateway do
   end
 
   it "loads blockchain adapters according to the config file" do
-    gateway = StraightServer::GatewayOnConfig.find_by_id(2)
-    expect(gateway.blockchain_adapters.map(&:class)).to eq([Straight::Blockchain::InsightAdapter,
+    expect(@gateway2.blockchain_adapters.map(&:class)).to eq([Straight::Blockchain::InsightAdapter,
                                                             Straight::Blockchain::BlockchainInfoAdapter,
                                                             Straight::Blockchain::MyceliumAdapter,
                                                             Straight::Blockchain::ChainComAdapter])
   end
 
   it "loads Insight adapter with given host url" do
-    gateway = StraightServer::GatewayOnConfig.find_by_id(2)
-    expect(gateway.blockchain_adapters.first.class).to eq(Straight::Blockchain::InsightAdapter)
+    expect(@gateway2.blockchain_adapters.first.class).to eq(Straight::Blockchain::InsightAdapter)
   end
 
   it "updates last_keychain_id to the new value provided in keychain_id if it's larger than the last_keychain_id" do
-    gateway = StraightServer::GatewayOnConfig.find_by_id(2)
-    gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 100)
-    expect(gateway.last_keychain_id).to eq(100)
-    gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 150)
-    expect(gateway.last_keychain_id).to eq(150)
-    gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 50)
+    @gateway2.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 100)
+    expect(@gateway2.last_keychain_id).to eq(100)
+    @gateway2.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 150)
+    expect(@gateway2.last_keychain_id).to eq(150)
+    @gateway2.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 50)
   end
 
   it "only warns about an invalid Bitcoin address, but doesn't fail" do

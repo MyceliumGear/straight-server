@@ -156,6 +156,44 @@ RSpec.describe StraightServer::Order do
 
     end
 
+    describe "accepted transactions" do
+
+      it "persists accepted transactions" do
+        transactions = [{tid: '1', amount: 1, confirmations: 1, block_height: 100000}, {tid: '2', amount: 2}, {tid: '3', amount: 3}]
+
+        expect(@order.accepted_transactions.size).to eq 0
+        expect {
+          @order.accepted_transactions = transactions[0, 1]
+        }.to change { StraightServer::Transaction.count }.by(1)
+        expect(@order.accepted_transactions.size).to eq 1
+
+        @order.on_accepted_transactions_updated = lambda { }
+        expect(@order.on_accepted_transactions_updated).to receive(:call).exactly(2).times.and_raise('meah')
+
+        expect {
+          @order.accepted_transactions = Straight::Transaction.from_hashes(transactions[1, 1])
+        }.to change { StraightServer::Transaction.count }.by(1)
+        expect(@order.accepted_transactions.size).to eq 2
+
+        expect {
+          @order.accepted_transactions = [StraightServer::Transaction.new(transactions[2])]
+        }.to change { StraightServer::Transaction.count }.by(1)
+        expect(@order.accepted_transactions.size).to eq 3
+
+        expect {
+          @order.accepted_transactions = transactions
+        }.to change { StraightServer::Transaction.count }.by(0)
+
+        (0..2).each do |i|
+          expect(@order.accepted_transactions[i].to_hash).to include transactions[i]
+          expect(@order.accepted_transactions(as: :straight)[i].to_h).to include transactions[i]
+        end
+
+        expect(@order.accepted_transactions.map(&:class).uniq).to eq [StraightServer::Transaction]
+        expect(@order.accepted_transactions(as: :straight).map(&:class).uniq).to eq [Straight::Transaction]
+      end
+    end
+
   end
 
 end

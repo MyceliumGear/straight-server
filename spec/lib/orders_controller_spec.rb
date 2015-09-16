@@ -6,6 +6,9 @@ RSpec.describe StraightServer::OrdersController do
   include_context :logger
 
   before(:each) do
+    allow_any_instance_of(StraightServer::GatewayOnConfig).to receive(:fetch_latest_block_height).and_return(nil)
+    allow_any_instance_of(StraightServer::GatewayOnDB).to receive(:fetch_latest_block_height).and_return(nil)
+
     StraightServer.db_connection.run("DELETE FROM orders")
     @gateway = gateway = StraightServer::Gateway.find_by_id(2)
     allow(gateway).to receive_message_chain("address_provider.takes_fees?").and_return(false)
