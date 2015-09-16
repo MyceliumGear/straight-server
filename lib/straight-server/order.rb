@@ -17,6 +17,8 @@ module StraightServer
     # stores the response of the server to which the callback is issued
     serialize_attributes :marshal, :callback_response
 
+    attr_accessor :on_accepted_transactions_updated
+
     plugin :after_initialize
     def after_initialize
       @status = self[:status] || 0
@@ -29,6 +31,35 @@ module StraightServer
     def gateway=(g)
       self.gateway_id = g.id
       @gateway        = g
+    end
+
+    def accepted_transactions(as: nil)
+      result = Transaction.where(order_id: id).all
+      case as
+      when :straight
+        result.map { |item| Straight::Transaction.from_hash(item.to_hash) }
+      else
+        result
+      end
+    end
+
+    def accepted_transactions=(items)
+      raise "order not persisted" unless id
+      items.map do |item|
+        item = item.respond_to?(:to_h) ? item.to_h : item.to_hash
+        transaction = Transaction[order_id: id, tid: item[:tid]] || Transaction.new(order_id: id)
+        begin
+          if transaction.update(item)
+            # TODO: emit event?
+            if @on_accepted_transactions_updated.respond_to?(:call)
+              @on_accepted_transactions_updated.call rescue nil
+            end
+          end
+        rescue => ex
+          StraightServer.logger.warn "Error during accepted transaction save: #{item.inspect} #{transaction.inspect} #{ex.inspect}"
+        end
+        transaction
+      end
     end
 
     def self.find_by_address(address)
@@ -69,14 +100,14 @@ module StraightServer
     end
 
     def set_data_from_ws(data)
-      gateway = self.gateway
       return if gateway.confirmations_required != 0 || self.status >= 2
       amount_paid = 0
       data["vout"].map { |el| amount_paid += el[address].to_i }
-      
-      self.tid = data["txid"].to_s
-      self.amount_paid = amount_paid
-      self.status = define_status(amount_paid, self.amount)
+      transaction        = Straight::Transaction.new
+      transaction.tid    = data['txid'].to_s
+      transaction.amount = amount_paid
+      result             = get_transaction_status(transactions: accepted_transactions(as: :straight).push(transaction))
+      result.each { |k, v| send :"#{k}=", v }
       self.save
     end
 
@@ -90,7 +121,7 @@ module StraightServer
       StraightServer::Thread.interrupt(label: payment_id)
     end
 
-    def save
+    def save(*)
       super # calling Sequel::Model save
       @status_changed = false
     end
@@ -156,6 +187,9 @@ module StraightServer
     def start_periodic_status_check
       if (t = time_left_before_expiration) > 0
         StraightServer.logger.info "Starting periodic status checks of order #{id} (expires in #{t} seconds)"
+        @on_accepted_transactions_updated = lambda do
+          gateway.order_accepted_transactions_updated self
+        end
         check_status_on_schedule(duration: t)
       end
       self.save if self.status_changed?

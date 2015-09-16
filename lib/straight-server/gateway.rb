@@ -62,6 +62,13 @@ module StraightServer
           end
         end
       ]
+      @order_accepted_transactions_updated_callbacks = [
+        lambda do |order|
+          StraightServer::Thread.new do
+            send_order_to_websocket_client order, close: false
+          end
+        end
+      ]
     end
 
     def initialize_status_check_schedule
@@ -159,10 +166,10 @@ module StraightServer
       @@websockets[self.id]
     end
 
-    def send_order_to_websocket_client(order)
+    def send_order_to_websocket_client(order, close: true)
       if ws = websockets[order.id]
         ws.send(order.to_json)
-        ws.close
+        ws.close if close
       end
     end
 
@@ -181,6 +188,12 @@ module StraightServer
         increment_order_counter!(statuses[order.status])
       end
       super
+    end
+
+    def order_accepted_transactions_updated(order)
+      @order_accepted_transactions_updated_callbacks.each do |callback|
+        callback.call order rescue next
+      end
     end
 
     def order_counters(reload: false)
