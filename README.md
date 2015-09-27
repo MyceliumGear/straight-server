@@ -304,6 +304,21 @@ When using this option, make sure that `HTTP_X_FORWARDED_FOR` header contains en
 
 Also, check out [ngx_http_realip_module](http://nginx.org/en/docs/http/ngx_http_realip_module.html).
 
+BIP0070 payment protocol
+------------------------
+
+Straight server provides the ability to implement the 
+[payment protocol](https://github.com/bitcoin/bips/blob/master/bip-0070.mediawiki).
+We recommend using CA certificates to sign payment requests. To do this, set following options in your 
+config file: 
+
+    ssl_certificate_path: '/path/to/ssl_certificate'
+    private_key_path:     '/path/to/private_key'
+
+To send a payment request file to wallet, simply use this request:
+
+    GET /gateways/1/orders/2/invoice 
+
 Running in production
 ---------------------
 Running in production usually assumes running server as daemon with a pid. Straight server

@@ -333,6 +333,26 @@ RSpec.describe StraightServer::OrdersController do
 
   end
 
+  describe "invoice action" do
+    let(:gateway) { StraightServer::GatewayOnConfig.find_by_id(1) }
+    let(:order) { create(:order, gateway_id: gateway.id) }
+
+    it "returns payment request file with headers as specified in BIP 71" do
+      send_request "GET", "/gateways/#{gateway.id}/orders/#{order.id}/invoice"
+      expect(response[0]).to eq(200)
+
+      headers_keys = response[1].keys.map(&:to_s)
+      expect(headers_keys).to include('Content-Type',
+                                      'Content-Disposition',
+                                      'Content-Transfer-Encoding',
+                                      'Expires',
+                                      'Cache-Control',
+                                      'Content-Length')
+
+      expect(response[2].length).to be > 0
+    end
+  end
+
   def send_request(method, path, params={})
     env = Hashie::Mash.new('REQUEST_METHOD' => method, 'REQUEST_PATH' => path, 'params' => params)
     @controller = StraightServer::OrdersController.new(env)

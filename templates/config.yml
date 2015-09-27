@@ -33,6 +33,11 @@ count_orders: true
 #  period: 60           # in seconds
 #  ip_ban_duration: 300 # in seconds
 
+# Path to certificates and private key for BIP70 protocol. Uncomment this and provide
+# it to send payment requests to wallets.
+#ssl_certificate_path: '/path/to/ssl_certificate'
+#private_key_path: '/path/to/private_key'
+
 redis:
   host: localhost
   port: 6379
