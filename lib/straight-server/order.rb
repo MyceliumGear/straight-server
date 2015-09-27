@@ -99,6 +99,10 @@ module StraightServer
       amount_in_btc(field: amount_paid, as: :string)
     end
 
+    def amount_to_pay_in_btc
+      amount_in_btc(field: amount.to_i - amount_paid.to_i, as: :string)
+    end
+
     def set_data_from_ws(data)
       return if gateway.confirmations_required != 0 || self.status >= 2
       amount_paid = 0
@@ -132,6 +136,7 @@ module StraightServer
         payment_id: payment_id,
         amount_in_btc: amount_in_btc(as: :string),
         amount_paid_in_btc: amount_paid_in_btc,
+        amount_to_pay_in_btc: amount_to_pay_in_btc,
         keychain_id: keychain_id,
         last_keychain_id: (self.gateway.test_mode ? self.gateway.test_last_keychain_id : self.gateway.last_keychain_id)
       })
