@@ -4,6 +4,8 @@ module StraightServer
 
   module Bip70
 
+    class PaymentRequestError < StandardError; end
+
     class PaymentRequest
 
       def initialize(order:)
@@ -68,12 +70,11 @@ module StraightServer
         end
 
         def create_signature(data)
-          key =
-            if Config.private_key_path
-              File.read(Config.private_key_path)
-            else
-              2048
-            end
+          if Config.private_key_path.nil?
+            raise PaymentRequestError.new('No private key was found! Please provide it in config file')
+          end
+
+          key = File.read(Config.private_key_path)
 
           private_key = OpenSSL::PKey::RSA.new(key)
           private_key.sign(OpenSSL::Digest::SHA256.new, data)

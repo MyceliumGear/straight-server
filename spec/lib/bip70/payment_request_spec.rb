@@ -118,4 +118,14 @@ RSpec.describe StraightServer::Bip70::PaymentRequest do
     File.delete(ssl_certificate_path)
   end
 
+  it "return 'no private key was found' error" do
+    private_key_path = StraightServer::Config.private_key_path
+    StraightServer::Config.private_key_path = nil
+
+    create_payment_request = -> { StraightServer::Bip70::PaymentRequest.new(order: order) }
+    expect(create_payment_request).to raise_exception(StraightServer::Bip70::PaymentRequestError)
+
+    StraightServer::Config.private_key_path = private_key_path
+  end
+
 end
