@@ -103,6 +103,18 @@ RSpec.describe StraightServer::Order do
     end
   end
 
+  it "calculates amount to pay" do
+    @order.amount      = 10000
+    @order.amount_paid = 0
+    expect(@order.amount_to_pay_in_btc).to eq '0.0001'
+
+    @order.amount_paid = 3001
+    expect(@order.amount_to_pay_in_btc).to eq '0.00006999'
+
+    @order.amount_paid = 9999
+    expect(@order.amount_to_pay_in_btc).to eq '0.00000547'
+  end
+
   describe "DB interaction" do
 
     it "saves a new order into the database" do
