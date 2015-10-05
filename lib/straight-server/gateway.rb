@@ -56,6 +56,7 @@ module StraightServer
         lambda do |order|
           StraightServer::Thread.new do
             send_order_to_websocket_client order
+            websockets.delete order.id
           end
           StraightServer::Thread.new do
             send_callback_http_request order
@@ -150,25 +151,26 @@ module StraightServer
     end
 
     def add_websocket_for_order(ws, order)
-      raise WebsocketExists            unless websockets[order.id].nil?
       raise WebsocketForCompletedOrder unless order.status < 2
-      StraightServer.logger.info "Opening ws connection for #{order.id}"
-      ws.on(:close) do |event|
-        websockets.delete(order.id)
-        StraightServer.logger.info "Closing ws connection for #{order.id}"
+      (websockets[order.id] ||= []) << ws
+      index = websockets[order.id].index(ws)
+      StraightServer.logger.info "[WS] Opened connection ##{index} for order ##{order.id}"
+      ws.on :close do
+        StraightServer.logger.info "[WS] Closed connection ##{index} for order ##{order.id}"
       end
-      websockets[order.id] = ws
       ws
     end
 
     def websockets
       raise NoWebsocketsForNewGateway unless self.id
-      @@websockets[self.id]
+      @@websockets[self.id] ||= {}
     end
 
     def send_order_to_websocket_client(order, close: true)
-      if ws = websockets[order.id]
-        ws.send(order.to_json)
+      (websockets[order.id] || []).each_with_index do |ws, i|
+        next unless ws
+        sent = ws.send(order.to_json)
+        StraightServer.logger.info "[WS] Sent order update to connection ##{i} for order ##{order.id}" if sent
         ws.close if close
       end
     end
@@ -374,13 +376,11 @@ module StraightServer
     end
 
     def after_create
-      @@websockets[self.id] = {}
       update(hashed_id: OpenSSL::HMAC.digest('sha256', Config.server_secret, self.id.to_s).unpack("H*").first)
     end
 
     def after_initialize
       @status_check_schedule = Straight::GatewayModule::DEFAULT_STATUS_CHECK_SCHEDULE
-      @@websockets[self.id] ||= {} if self.id
       initialize_callbacks
       initialize_exchange_rate_adapters
       initialize_blockchain_adapters
@@ -596,7 +596,6 @@ module StraightServer
         gateway.validate_config
         gateway.initialize_exchange_rate_adapters
         gateway.load_last_keychain_id!
-        @@websockets[i] = {}
         @@gateways << gateway
       end if StraightServer::Config.gateways
     end

@@ -16,11 +16,6 @@ module StraightServer
     class GatewayInactive            < StraightServerError; end
     class CallbackUrlBadResponse     < StraightServerError; end
 
-    class WebsocketExists < StraightServerError
-      def message
-        'someone is already listening to that order'
-      end
-    end
     class WebsocketForCompletedOrder < StraightServerError
       def message
         'you cannot listen to this order because it is completed (status > 1)'
