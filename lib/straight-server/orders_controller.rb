@@ -125,6 +125,24 @@ module StraightServer
       [200, {}, {gateway_id: @gateway.id, last_keychain_id: @gateway.last_keychain_id}.to_json]
     end
 
+    def invoice
+      order = find_order
+      if order
+        payment_request = Bip70::PaymentRequest.new(order: order).to_s
+
+        headers = {
+          'Content-Type': 'application/bitcoin-paymentrequest',
+          'Content-Disposition': "inline; filename=i#{Time.now.to_i}.bitcoinpaymentrequest",
+          'Content-Transfer-Encoding': 'binary',
+          'Expires': '0',
+          'Cache-Control': 'must-revalidate, post-check=0, pre-check=0',
+          'Content-Length': payment_request.length.to_s
+        }
+
+        [200, headers, payment_request]
+      end
+    end
+
     private
 
       # Refactoring proposed: https://github.com/AlexanderPavlenko/straight-server/commit/49ea6e3732a9564c04d8dfecaee6d0ebaa462042
@@ -168,6 +186,12 @@ module StraightServer
             #
             when %r{\AGET /gateways/([^/]+)/last_keychain_id\Z}
               last_keychain_id
+
+            # GET /gateways/:gateway_id/orders/:order_id/invoice
+            # GET /gateways/:gateway_hashed_id/orders/:order_payment_id/invoice
+            #
+            when %r{\AGET /gateways/([^/]+)/orders/([^/]+)/invoice\Z}
+              invoice
 
             else
               raise RoutingError.new(@method, @env['REQUEST_PATH'])

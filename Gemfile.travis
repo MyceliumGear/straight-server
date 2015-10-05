@@ -11,6 +11,7 @@ gem 'ruby-hmac'
 gem 'httparty'
 gem 'redis'
 gem 'btcruby', '1.1.1'
+gem 'ruby-protocol-buffers'
 
 group :development do
   gem 'byebug'

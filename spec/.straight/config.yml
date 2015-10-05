@@ -5,6 +5,8 @@ environment: test
 count_orders: true
 expiration_overtime: 0
 reuse_address_orders_threshold: 5
+ssl_certificate_path: 'spec/.straight/ca.crt'
+private_key_path: 'spec/.straight/private.key'
 
 gateways:
   default:
