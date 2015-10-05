@@ -478,15 +478,20 @@ RSpec.describe StraightServer::Gateway do
 
     it "adds a new websocket for the order" do
       @gateway.add_websocket_for_order(@ws, @order_mock)
-      expect(@gateway.websockets).to eq({1 => @ws})
+      expect(@gateway.websockets).to eq(1 => [@ws])
     end
 
-    it "sends a message to the websocket when status of the order is changed and closes the connection" do
+    it "sends a message to all websockets when status of the order is changed and closes the connection" do
       allow(@gateway).to receive(:send_callback_http_request) # ignoring the callback which sends an callback_url request
-      expect(@order_mock).to receive(:to_json).and_return("order json info")
+      expect(@order_mock).to receive(:to_json).exactly(2).times.and_return("order json info")
       expect(@ws).to receive(:send).with("order json info")
       expect(@ws).to receive(:close)
+      @ws2 = double("websocket mock 2")
+      allow(@ws2).to receive(:on).with(:close)
+      expect(@ws2).to receive(:send).with("order json info")
+      expect(@ws2).to receive(:close)
       @gateway.add_websocket_for_order(@ws, @order_mock)
+      @gateway.add_websocket_for_order(@ws2, @order_mock)
       @gateway.order_status_changed(@order_mock)
     end
 
@@ -495,10 +500,11 @@ RSpec.describe StraightServer::Gateway do
       expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).to raise_exception(StraightServer::Gateway::WebsocketForCompletedOrder)
     end
 
-    it "doesn't allow to create a second websocket for the same order" do
+    it "allows to create multiple websockets for the same order" do
       allow(@order_mock).to receive(:status).and_return(0)
       @gateway.add_websocket_for_order(@ws, @order_mock)
-      expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).to raise_exception(StraightServer::Gateway::WebsocketExists)
+      expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).not_to raise_exception
+      expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).not_to raise_exception
     end
 
   end

@@ -148,7 +148,7 @@ module StraightServer
       # Refactoring proposed: https://github.com/AlexanderPavlenko/straight-server/commit/49ea6e3732a9564c04d8dfecaee6d0ebaa462042
       def dispatch
         StraightServer.logger.blank_lines
-        StraightServer.logger.info "#{@method} #{@env['REQUEST_PATH']}\n#{@params}"
+        StraightServer.logger.info "#{@method} #{@env['REQUEST_PATH']}#{@params && !@params.empty? ? "\n#{@params.inspect}" : nil}"
 
         @gateway = StraightServer::Gateway.find_by_hashed_id(@request_path[1])
         raise Gateway::RecordNotFound if @gateway.nil?
