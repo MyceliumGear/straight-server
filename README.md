@@ -3,14 +3,12 @@ Straight server
 > A stand-alone Bitcoin payment gateway server.
 > Receives bitcoin payments directly into your wallet, holds no private keys
 >
-> It is used as a backend for the hosted service http://gear.mycelium.com
+> It is used as a backend for the hosted service https://gear.mycelium.com
 > Instead of installing the gateway yourself, you can just use
 > Mycelium Gear and accept payments through it. Of course, straight
 > into your wallet again - no private key required.
 
-> Website: http://gear.mycelium.com
-
-[![Build Status](https://travis-ci.org/MyceliumGear/straight-server.svg?branch=master)](https://travis-ci.org/MyceliumGear/straight-server)
+> Website: https://gear.mycelium.com
 
 If you'd like to accept Bitcoin payments on your website automatically, but you're not
 fond of services like Coinbase or Bitpay, which hold your bitcoins for you and require a ton
@@ -29,7 +27,7 @@ Straight uses BIP32 pubkeys so that you and only you control your private keys.
 If you're not sure what a BIP32 address and HD wallets are, read this article:
 http://bitcoinmagazine.com/8396/deterministic-wallets-advantages-flaw/
 
-You might also be interested in a stateless [Straight](https://github.com/snitko/straight) library that is the base for Straight server.
+You might also be interested in a stateless [Straight](https://github.com/MyceliumGear/straight) library that is the base for Straight server.
 
 Installation
 ------------
@@ -78,7 +76,7 @@ to your app. It will have the same value as the `callback_data` parameter you pa
     POST /gateways/1/orders?amount=1&callback_data=some+random+data
 
 You can specify amount in other currencies, as well as various BTC denominations.
-It will be converted using the current exchange rate (see [Straight::ExchangeAdapter](https://github.com/snitko/straight/blob/master/lib/straight/exchange_rate_adapter.rb)) into satoshis:
+It will be converted using the current exchange rate (see [Straight::ExchangeAdapter](https://github.com/MyceliumGear/straight/blob/master/lib/straight/exchange_rate_adapter.rb)) into satoshis:
 
     # creates a new order for 1 USD
     POST /gateways/1/orders?amount=1&currency=USD
@@ -137,7 +135,7 @@ tracks changes via websockets and displays status info upon status change. To se
 download Dartium browser and navigate it to the `http://localhost:9696` while running the
 Straight server in development mode (nothing special has to be done for that).
 
-The code for this client app example can be found in [examples/client](https://github.com/snitko/straight-server/tree/master/examples/client).
+The code for this client app example can be found in [examples/client](https://github.com/MyceliumGear/straight-server/tree/master/examples/client).
 
 Using many different gateways
 ------------------------------
