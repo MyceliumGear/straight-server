@@ -130,8 +130,8 @@ RSpec.describe StraightServer::Gateway do
       url =
         'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
-        'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1'
-      signature = '8nCEuLQUsZS6sxio6d+aOy9Zb2NAdapoWtpyd/7PnWKUehUAB2xBVwvbHjxYFkb4uL2PnylkBL8qNegNbcVptw=='
+        'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1&transaction_ids=[]'
+      signature = 'UK0DWCoWUfsEC3v1UtIK8FwRIT3tSDL4HxRFdwaVWYWgwtUwCVt0iO1a6s7akDfk+M/c5XXW6G3Q4zGy8zs09g=='
 
       stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 200, body: 'okay')
       expect(@gateway).to receive(:sleep).exactly(0).times
@@ -143,8 +143,8 @@ RSpec.describe StraightServer::Gateway do
       url =
         'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
-        'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1'
-      signature = '8nCEuLQUsZS6sxio6d+aOy9Zb2NAdapoWtpyd/7PnWKUehUAB2xBVwvbHjxYFkb4uL2PnylkBL8qNegNbcVptw=='
+        'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1&transaction_ids=[]'
+      signature = 'UK0DWCoWUfsEC3v1UtIK8FwRIT3tSDL4HxRFdwaVWYWgwtUwCVt0iO1a6s7akDfk+M/c5XXW6G3Q4zGy8zs09g=='
 
       stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 404, body: '')
       expect(@gateway).to receive(:sleep).exactly(10).times
@@ -154,9 +154,9 @@ RSpec.describe StraightServer::Gateway do
     it "receives random data in :data params and sends it back in a callback request" do
       uri =
         '/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
-        'status=1&address=address_1&tid=tid1&keychain_id=1&last_keychain_id=1&after_payment_redirect_to=' \
+        'status=1&address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=1&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&auto_redirect=true&callback_data=so%3Fme+ran%26dom+data'
-      signature = 'iUxeL/Vv94ppGDx24PaT1dOo/JM9K1lvi+X/FMF3pjXYAIKVm8QJY5nWV0QfguytyQkJML2z2lp+zVvl16lAgQ=='
+      signature = 'GCnzM/YGveTVev6rfjU9wTa7pIa5s2mlPv4Bq/xipFi5uPJVWBWDCtbq0GMUIfPnlRk8ap8S/68M1vn1mX0B9Q=='
 
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://localhost:3001#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
@@ -168,9 +168,9 @@ RSpec.describe StraightServer::Gateway do
     it "uses callback_url from order when making callback" do
       uri =
         '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&' \
-        'address=address_1&tid=tid1&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
+        'address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&auto_redirect=true'
-      signature = 'fq4NnZqrig2GAqkDkEdJ/2nf5Hcp4WqHlApyOEW0JMo5cSCkI+YZ6Mua053s49dUUafJNwWxaSo1VPIfNQ4g/w=='
+      signature = 'svymdY74ifZJma4y4w428J9slXic9wY4n1ZJr+BxKHEP0FDDJ7FiBfrx0AC+HH3xw5Oy2tsPFLaZTrGj6DIgPA=='
 
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://new_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
@@ -181,7 +181,7 @@ RSpec.describe StraightServer::Gateway do
     it "does not raise error when making callback with invalid uri" do
       uri =
         '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&' \
-        'address=address_1&tid=tid1&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
+        'address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&auto_redirect=true'
       signature = 'fq4NnZqrig2GAqkDkEdJ/2nf5Hcp4WqHlApyOEW0JMo5cSCkI+YZ6Mua053s49dUUafJNwWxaSo1VPIfNQ4g/w=='
 
