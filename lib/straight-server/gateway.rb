@@ -21,32 +21,47 @@ module StraightServer
         self.exchange_rate_adapter_names.each do |adapter|
           begin
             @exchange_rate_adapters << Straight::ExchangeRate.const_get("#{adapter}Adapter").instance
-          rescue NameError => e
-            puts "WARNING: No exchange rate adapter with the name #{adapter} was found!"
+          rescue NameError
+            StraightServer.logger.warn "No exchange rate adapter with the name #{adapter} was found!"
           end
         end
       end
     end
 
     def initialize_blockchain_adapters
-      @blockchain_adapters = []
-      StraightServer::Config.blockchain_adapters.each do |name, attrs|
-
-        adapter = Straight::Blockchain.const_get("#{name}Adapter")
-        next unless adapter
-
-        @blockchain_adapters <<
-          case name
-          when 'ChainCom'
-            adapter.mainnet_adapter(api_key_id: attrs['api_key_id'])
-          when 'Insight'
-            adapter.mainnet_adapter(main_url: attrs['mainnet_url'], test_url: attrs['testnet_url'])
-          else
-            adapter.mainnet_adapter
+      all_instances = {main: [], test: []}
+      StraightServer::Config.blockchain_adapters.each do |name, params|
+        begin
+          adapter = Straight::Blockchain.const_get("#{name}Adapter") rescue Kernel.const_get(name)
+        rescue NameError
+          StraightServer.logger.warn "No blockchain adapter with the name #{name.inspect} was found!"
+          next
+        end
+        adapter_args = {main: [], test: []}
+        if name == 'Insight'
+          adapter_args.each do |k, v|
+            [params["#{k}net_url"]].flatten.compact.each do |url|
+              v << [{url: url}]
+            end
           end
-
+        else
+          (params.kind_of?(Array) ? params : [params]).each do |item|
+            args = item.kind_of?(Hash) ? item.keys_to_sym : {}
+            adapter_args.each do |_, v|
+              v << (args.empty? ? [] : [args])
+            end
+          end
+        end
+        adapter_args.each do |k, v|
+          if adapter.public_send(:"support_#{k}net?")
+            instances = v.map { |args| adapter.public_send(:"#{k}net_adapter", *args) }
+            all_instances[k].concat instances
+          end
+        end
       end
-      raise NoBlockchainAdapters if @blockchain_adapters.empty?
+      @blockchain_adapters      = all_instances[:main]
+      @test_blockchain_adapters = all_instances[:test]
+      raise NoBlockchainAdapters if all_instances.values.all?(&:empty?)
     end
 
     def initialize_callbacks

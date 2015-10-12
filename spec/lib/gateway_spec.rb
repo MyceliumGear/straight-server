@@ -296,13 +296,6 @@ RSpec.describe StraightServer::Gateway do
       expect(@gateway.test_blockchain_adapters.first.class).to eq(Straight::Blockchain::InsightAdapter)
     end
 
-    it "fallback to another adapter if on previous one not ready for testnet" do
-      @gateway = StraightServer::GatewayOnConfig.find_by_id(1)
-      Straight::Blockchain::InsightAdapter.class_eval("def self.test_url=(val) @@test_url=val end")
-      Straight::Blockchain::InsightAdapter.test_url = nil
-      expect(@gateway.test_blockchain_adapters.first.class).to eq(Straight::Blockchain::MyceliumAdapter)
-    end
-
     it "disable test mode manually" do
       @gateway = StraightServer::GatewayOnConfig.find_by_id(1)
       @gateway.test_mode = false

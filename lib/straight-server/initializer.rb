@@ -207,12 +207,12 @@ module StraightServer
     end
     
     def open_ws_connect
-      websocket_url = StraightServer::Config[:'blockchain_adapters.Insight.websocket_url']
-      if websocket_url
-        StraightServer.insight_client = StraightServer::WebsocketInsightClient.new(websocket_url)
+      websocket_urls = [StraightServer::Config[:'blockchain_adapters.Insight.websocket_url']].flatten.compact
+      unless websocket_urls.empty?
+        StraightServer.insight_client = StraightServer::WebsocketInsightClient.new(websocket_urls)
       end
     rescue SocketError
-      StraightServer.logger.warn "Please check correctness of insight_websocket_url in config file."
+      StraightServer.logger.warn "Please check correctness of Insight.websocket_url in the config file."
     end
 
     # Loads redis gem and sets up key prefixes for order counters
