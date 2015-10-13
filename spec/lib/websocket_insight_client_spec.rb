@@ -40,4 +40,9 @@ RSpec.describe StraightServer::WebsocketInsightClient do
     }.to raise_error(SocketError)
   end
 
+  it "allows multiple connections" do
+    client = StraightServer::WebsocketInsightClient.new(["wss://insight.mycelium.com", "ws://insight.gear.mycelium-dev.com:3000"])
+    expect(client.sockets.size).to eq 2
+  end
+
 end
