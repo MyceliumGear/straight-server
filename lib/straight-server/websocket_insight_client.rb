@@ -12,7 +12,10 @@ module StraightServer
     end
 
     def connect(url)
-      socket = SocketIO::Client::Simple.connect(url)
+      socket =
+        Timeout.timeout(15, SocketError) do
+          SocketIO::Client::Simple.connect(url)
+        end
       client = self
 
       socket.on :connect do
