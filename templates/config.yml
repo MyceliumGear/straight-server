@@ -98,13 +98,16 @@ blockchain_adapters:
   # Uses Straight::Blockchain::InsightAdapter
   Insight:
     # If Insight adapter is enabled, it is necessary to provide a url for it.
-    mainnet_url: 'https://localhost/api'
+    mainnet_url:
+      - 'https://localhost/api'
     # You can also set a testnet insight url to use:
-    testnet_url: 'https://test.localhost/api'
+    testnet_url:
+      - 'https://test.localhost/api'
     # Websocket Insight Url
     # Uncomment it and put real Insight server address, for using fast transaction tracking. It works only
     # for gateways and orders without confirmation required (eq to 0).
-    websocket_url: 'wss://localhost'
+    websocket_url:
+      - 'wss://localhost'
   # Uses Straight::Blockchain::ChainComAdapter
   ChainCom:
     api_key_id: my_chain_com_api_key_id
