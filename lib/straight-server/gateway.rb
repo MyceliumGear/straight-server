@@ -61,7 +61,13 @@ module StraightServer
       end
       @blockchain_adapters      = all_instances[:main]
       @test_blockchain_adapters = all_instances[:test]
-      raise NoBlockchainAdapters if all_instances.values.all?(&:empty?)
+      if all_instances.values.all?(&:empty?)
+        raise NoBlockchainAdapters
+      elsif @blockchain_adapters.empty?
+        StraightServer.logger.warn "No mainnet blockchain adapters are configured"
+      elsif @test_blockchain_adapters.empty?
+        StraightServer.logger.warn "No testnet blockchain adapters are configured"
+      end
     end
 
     def initialize_callbacks
