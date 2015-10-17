@@ -526,6 +526,7 @@ module StraightServer
     attr_accessor :after_payment_redirect_to
     attr_accessor :auto_redirect
 
+    attr_accessor :allow_links
     attr_accessor :merchant_url
 
     def self.find_by_hashed_id(s)
