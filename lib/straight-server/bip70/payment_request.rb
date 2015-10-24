@@ -33,7 +33,7 @@ module StraightServer
         def create_output
           output = Payments::Output.new
           output.amount = @order.amount
-          output.script = @order.address
+          output.script = BTC::Address.parse(@order.address).script.data
           output
         end
 

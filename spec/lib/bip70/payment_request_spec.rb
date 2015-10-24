@@ -38,8 +38,10 @@ RSpec.describe StraightServer::Bip70::PaymentRequest do
     expect(payment_details.outputs.size).to eq(1)
 
     output = payment_details.outputs.first
+    script_string = BTC::Script.new(data: output.script).to_s
+
     expect(output.amount).to eq(order.amount)
-    expect(output.script).to eq(order.address)
+    expect(script_string).to eq('OP_DUP OP_HASH160 fa5f4aecd0034f5f0873868ba788ae09df40a7f7 OP_EQUALVERIFY OP_CHECKSIG')
   end
 
   it "return 'no private key was found' error" do
@@ -74,8 +76,10 @@ RSpec.describe StraightServer::Bip70::PaymentRequest do
     expect(payment_details.outputs.size).to eq(1)
 
     output = payment_details.outputs.first
+    script_string = BTC::Script.new(data: output.script).to_s
+
     expect(output.amount).to eq(order.amount)
-    expect(output.script).to eq(order.address)
+    expect(script_string).to eq('OP_DUP OP_HASH160 fa5f4aecd0034f5f0873868ba788ae09df40a7f7 OP_EQUALVERIFY OP_CHECKSIG')
 
     StraightServer::Config.ssl_certificate_path = ssl_certificate_path
   end
