@@ -55,7 +55,7 @@ module StraightServer
             order.start_periodic_status_check
           end
         end
-        [200, {}, add_callback_data_warning(order).to_json]
+        [200, { 'Content-Type': 'application/json' }, add_callback_data_warning(order).to_json]
       rescue Sequel::ValidationFailed => e
         StraightServer.logger.warn(
           "VALIDATION ERRORS in order, cannot create it:\n" +
@@ -81,7 +81,7 @@ module StraightServer
       if order
         order.status(reload: true)
         order.save if order.status_changed?
-        [200, {}, order.to_json]
+        [200, { 'Content-Type': 'application/json' }, order.to_json]
       end
     end
 
@@ -114,7 +114,7 @@ module StraightServer
         order.save if order.status_changed?
         if order.cancelable?
           order.cancel
-          [200, {}, '']
+          [204, { 'Content-Type': 'text/html' }, ' ']
         else
           [409, {}, "Order is not cancelable"]
         end
