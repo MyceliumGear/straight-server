@@ -132,7 +132,7 @@ RSpec.describe StraightServer::OrdersController do
       allow(@order_mock).to receive(:status_changed?).and_return(false)
       expect(StraightServer::Order).to receive(:[]).with(1).and_return(@order_mock)
       send_request "GET", '/gateways/2/orders/1'
-      expect(response).to eq([200, {}, "order json mock"])
+      expect(response).to eq([200, { 'Content-Type': 'application/json' }, "order json mock"])
     end
 
     it "saves an order if status is updated" do
@@ -140,7 +140,7 @@ RSpec.describe StraightServer::OrdersController do
       expect(@order_mock).to receive(:save)
       expect(StraightServer::Order).to receive(:[]).with(1).and_return(@order_mock)
       send_request "GET", '/gateways/2/orders/1'
-      expect(response).to eq([200, {}, "order json mock"])
+      expect(response).to eq([200, { 'Content-Type': 'application/json' }, "order json mock"])
     end
 
     it "renders 404 if order is not found" do
@@ -153,7 +153,7 @@ RSpec.describe StraightServer::OrdersController do
       allow(@order_mock).to receive(:status_changed?).and_return(false)
       expect(StraightServer::Order).to receive(:[]).with(:payment_id => 'payment_id').and_return(@order_mock)
       send_request "GET", '/gateways/2/orders/payment_id'
-      expect(response).to eq([200, {}, "order json mock"])
+      expect(response).to eq([200, { 'Content-Type': 'application/json' }, "order json mock"])
     end
 
     it "renders 404 error when an gateway cannot be found" do
@@ -250,7 +250,7 @@ RSpec.describe StraightServer::OrdersController do
       send_request "POST", '/gateways/2/orders', amount: 1
       payment_id = JSON.parse(response[2])['payment_id']
       send_request "POST", "/gateways/2/orders/#{payment_id}/cancel"
-      expect(response[0]).to eq 200
+      expect(response[0]).to eq 204
     end
 
     it "requires signature to cancel signed order" do
@@ -266,7 +266,7 @@ RSpec.describe StraightServer::OrdersController do
       send_request "POST", "/gateways/1/orders/payment_id/cancel"
       expect(response).to eq [409, {}, 'X-Nonce is invalid: nil']
       send_signed_request @gateway1, "POST", "/gateways/1/orders/payment_id/cancel"
-      expect(response[0]).to eq 200
+      expect(response[0]).to eq 204
     end
 
     it "do not cancel orders with status != new" do
@@ -295,7 +295,7 @@ RSpec.describe StraightServer::OrdersController do
 
       stub_request(:any, /(.*)/).to_return(status: 200, body: '{"transactions": [], "txs": []}', headers: {})
       send_request "POST", "/gateways/#{gateway.hashed_id}/orders/#{order.id}/cancel"
-      expect(response[0]).to eq 200
+      expect(response[0]).to eq 204
 
       run_silently { StraightServer::Gateway = StraightServer::GatewayOnConfig }
     end
