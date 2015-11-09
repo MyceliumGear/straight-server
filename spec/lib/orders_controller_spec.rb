@@ -208,11 +208,12 @@ RSpec.describe StraightServer::OrdersController do
       expect(response).to eq("ws rack response")
     end
 
-    it "returns 403 when order has is completed (status > 1)" do
-      allow(@ws_mock).to receive(:send).with('error: you cannot listen to this order because it is completed (status > 1)')
-      allow(@ws_mock).to receive(:close)
-      allow(@order_mock).to receive(:status).and_return(2)
-      allow(StraightServer::Order).to receive(:[]).with(1).and_return(@order_mock)
+    it "returns json when order is completed (status > 1)" do
+      expect(@ws_mock).to receive(:send).with('{}')
+      expect(@ws_mock).to receive(:close)
+      expect(@order_mock).to receive(:status).and_return(2)
+      expect(@order_mock).to receive(:to_json).and_return('{}')
+      expect(StraightServer::Order).to receive(:[]).with(1).and_return(@order_mock)
       send_request "GET", '/gateways/2/orders/1/websocket'
       expect(response).to eq("ws rack response")
     end

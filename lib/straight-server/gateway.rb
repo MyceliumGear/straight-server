@@ -172,7 +172,6 @@ module StraightServer
     end
 
     def add_websocket_for_order(ws, order)
-      raise WebsocketForCompletedOrder unless order.status < 2
       (websockets[order.id] ||= []) << ws
       index = websockets[order.id].index(ws)
       StraightServer.logger.info "[WS] Opened connection ##{index} for order ##{order.id}"
