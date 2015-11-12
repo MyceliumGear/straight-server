@@ -88,13 +88,12 @@ module StraightServer
     def websocket
       ws = Faye::WebSocket.new(@env)
 
-      order = find_order
-      if order
-        begin
-          @gateway.add_websocket_for_order(ws, order)
-        rescue => e
-          ws.send("error: #{e.message}")
+      if (order = find_order)
+        if order.status >= 2
+          ws.send order.to_json
           ws.close
+        else
+          @gateway.add_websocket_for_order(ws, order)
         end
       else
         ws.send('error: order not found')

@@ -488,9 +488,9 @@ RSpec.describe StraightServer::Gateway do
       @gateway.order_status_changed(@order_mock)
     end
 
-    it "doesn't allow to listen to orders with statuses other than 0 or 1" do
+    it "does allow to listen to orders with statuses other than 0 or 1" do
       allow(@order_mock).to receive(:status).and_return(2)
-      expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).to raise_exception(StraightServer::Gateway::WebsocketForCompletedOrder)
+      expect( -> { @gateway.add_websocket_for_order(@ws, @order_mock) }).to_not raise_exception
     end
 
     it "allows to create multiple websockets for the same order" do

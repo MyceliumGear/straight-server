@@ -16,12 +16,6 @@ module StraightServer
     class GatewayInactive            < StraightServerError; end
     class CallbackUrlBadResponse     < StraightServerError; end
 
-    class WebsocketForCompletedOrder < StraightServerError
-      def message
-        'you cannot listen to this order because it is completed (status > 1)'
-      end
-    end
-
     class NoBlockchainAdapters < StraightServerError
       def message
         "No blockchain adapters were found! StraightServer cannot query the blockchain.\n" +
