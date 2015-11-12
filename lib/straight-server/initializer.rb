@@ -40,6 +40,7 @@ module StraightServer
       ConfigDir.set!
       create_config_files
       read_config_file
+      yield StraightServer::Config if block_given?
       create_logger
       connect_to_db
       self.run_migrations if run_migrations && migrations_pending?
