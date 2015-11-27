@@ -100,10 +100,13 @@ module StraightServer
     end
 
     TRANSACTION_AMOUNT_MINIMUM = 547
+    def amount_to_pay
+      actual_amount = amount.to_i - amount_paid.to_i
+      [actual_amount, TRANSACTION_AMOUNT_MINIMUM].max
+    end
+
     def amount_to_pay_in_btc
-      actual_amount   = amount.to_i - amount_paid.to_i
-      possible_amount = [actual_amount, TRANSACTION_AMOUNT_MINIMUM].max
-      amount_in_btc(field: possible_amount, as: :string)
+      amount_in_btc(field: amount_to_pay, as: :string)
     end
 
     def set_data_from_ws(data)
