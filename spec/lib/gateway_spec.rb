@@ -76,7 +76,7 @@ RSpec.describe StraightServer::Gateway do
     end
 
     it "picks an expired order which address is going to be reused" do
-      expect(@gateway.find_reusable_order).to eq(@expired_orders_1.last)
+      expect(@gateway.find_reusable_order.id).to eq(@expired_orders_1.last.id)
     end
 
     it "picks an expired order which address is going to be reused only when this address received no transactions" do

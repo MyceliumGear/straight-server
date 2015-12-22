@@ -95,6 +95,11 @@ module StraightServer
       self[:status] = @status
     end
 
+    def status=(*)
+      self[:status] = @status
+      save
+    end
+
     def amount_paid_in_btc
       amount_in_btc(field: amount_paid, as: :string)
     end
@@ -118,7 +123,6 @@ module StraightServer
       transaction.amount = amount_paid
       result             = get_transaction_status(transactions: accepted_transactions(as: :straight).push(transaction))
       result.each { |k, v| send :"#{k}=", v }
-      self.save
     end
 
     def cancelable?

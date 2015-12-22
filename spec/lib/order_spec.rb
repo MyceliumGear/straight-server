@@ -125,7 +125,6 @@ RSpec.describe StraightServer::Order do
       allow(@order).to receive(:gateway).and_return(@gateway)
       expect(StraightServer.db_connection[:orders][:keychain_id => @order.id][:status]).to eq(0)
       @order.status = 1
-      @order.save
       expect(StraightServer.db_connection[:orders][:keychain_id => @order.id][:status]).to eq(1)
     end
 
