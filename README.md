@@ -46,29 +46,28 @@ wallets that support BIP32 (currently it's bitWallet for iOS or Electrum) or go 
 
 5. Run the server again with `straight-server -p 9696`
 
+If `straight-server` after the start reports that there is no test key, you should:
 
-If `straight-server` on start writes that there is no test key you should:
-
-In test mode generate test key and add it in `config.yml`
+In test mode generate a test key and add it to `config.yml`
     
     test_pubkey: tpub.....
     
-Or, if you are not using the test mode, you must change: 
+Or, if you are not using test mode, set: 
     
-    test_mode: false 
+    test_mode: false
     
-To have the current version of the `straight-server`, it is recommended to run the `straight-server` is not as `gem`, locally. 
+It is recommended to run `straight-server` not as `gem`, but locally.
 
     bundle exec bin/straight-server
-    
-And in `Gemfile` use `path:` for use `gem` 'straight' locally too:
+
+In `Gemfile` add a `path:` to use `gem` 'straight' locally too:
 
     gem 'straight', path: '/home/work/straight'
 
 Usage
 -----
 When the server is running, you can access it via http and use its RESTful API.
-Below I assume it runs on localhost on port 9696.
+Below we assume it runs on localhost on port 9696.
 
 **Creating a new order:**
 
