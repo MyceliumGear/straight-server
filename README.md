@@ -42,15 +42,32 @@ file in there, then shut down. You have to edit the file first to be able to run
 
 4. In `config.yml`, under the `gateways/default` section, insert your BIP32 pubkey and a callback URL.
 Everything may be left as is for now. To generate a BIP32 private/public keys, you can use one of the
-wallets that support BIP32 (currently it's bitWallet for iOS) or go to http://bip32.org
+wallets that support BIP32 (currently it's bitWallet for iOS or Electrum) or go to http://bip32.org
 
 5. Run the server again with `straight-server -p 9696`
 
+If `straight-server` after the start reports that there is no test key, you should:
+
+In test mode generate a test key and add it to `config.yml`
+    
+    test_pubkey: tpub.....
+    
+Or, if you are not using test mode, set: 
+    
+    test_mode: false
+    
+It is recommended to run `straight-server` not as `gem`, but locally.
+
+    bundle exec bin/straight-server
+
+In `Gemfile` add a `path:` to use `gem` 'straight' locally too:
+
+    gem 'straight', path: '/home/work/straight'
 
 Usage
 -----
 When the server is running, you can access it via http and use its RESTful API.
-Below I assume it runs on localhost on port 9696.
+Below we assume it runs on localhost on port 9696.
 
 **Creating a new order:**
 
