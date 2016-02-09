@@ -1,6 +1,6 @@
 source 'https://rubygems.org' do
   if ENV['BUILD_ROOT'].to_s.empty?
-    gem 'straight', '1.0.0' #, path: '../straight-engine'
+    gem 'straight', github: 'MyceliumGear/straight'
   else
     gem 'straight', git: "#{ENV['BUILD_ROOT']}/straight/.git", ref: ENV['STRAIGHT_REF']
     gem 'pg'
