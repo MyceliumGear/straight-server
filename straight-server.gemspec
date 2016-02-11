@@ -124,6 +124,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<redis>, [">= 0"])
       s.add_runtime_dependency(%q<btcruby>, ["= 1.1.1"])
       s.add_runtime_dependency(%q<ruby-protocol-buffers>, [">= 0"])
+      s.add_runtime_dependency(%q<jwt>, ["~> 1.5"])
       s.add_development_dependency(%q<byebug>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_development_dependency(%q<github_api>, ["= 0.11.3"])
@@ -143,6 +144,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<byebug>, [">= 0"])
       s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
       s.add_dependency(%q<github_api>, ["= 0.11.3"])
+      s.add_dependency(%q<jwt>, ["~> 1.5"])
     end
   else
     s.add_dependency(%q<straight>, ["= 1.0.0"])
@@ -160,6 +162,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<byebug>, [">= 0"])
     s.add_dependency(%q<jeweler>, ["~> 2.0.1"])
     s.add_dependency(%q<github_api>, ["= 0.11.3"])
+    s.add_dependency(%q<jwt>, ["~> 1.5"])
   end
 end
 

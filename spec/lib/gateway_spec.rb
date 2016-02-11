@@ -131,7 +131,7 @@ RSpec.describe StraightServer::Gateway do
         'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
         'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1&transaction_ids=[]'
-      signature = 'UK0DWCoWUfsEC3v1UtIK8FwRIT3tSDL4HxRFdwaVWYWgwtUwCVt0iO1a6s7akDfk+M/c5XXW6G3Q4zGy8zs09g=='
+      signature = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e30.DMCAvRgzrcf5w0Z879BsqzcrnDFKBY_GN6c3qKOUFtQ'
 
       stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 200, body: 'okay')
       expect(@gateway).to receive(:sleep).exactly(0).times
@@ -144,7 +144,7 @@ RSpec.describe StraightServer::Gateway do
         'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
         'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1&transaction_ids=[]'
-      signature = 'UK0DWCoWUfsEC3v1UtIK8FwRIT3tSDL4HxRFdwaVWYWgwtUwCVt0iO1a6s7akDfk+M/c5XXW6G3Q4zGy8zs09g=='
+      signature = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e30.DMCAvRgzrcf5w0Z879BsqzcrnDFKBY_GN6c3qKOUFtQ'
 
       stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 404, body: '')
       expect(@gateway).to receive(:sleep).exactly(10).times
@@ -156,9 +156,8 @@ RSpec.describe StraightServer::Gateway do
         '/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
         'status=1&address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=1&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&auto_redirect=true&callback_data=so%3Fme+ran%26dom+data'
-      signature = 'GCnzM/YGveTVev6rfjU9wTa7pIa5s2mlPv4Bq/xipFi5uPJVWBWDCtbq0GMUIfPnlRk8ap8S/68M1vn1mX0B9Q=='
+      signature = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e30.DMCAvRgzrcf5w0Z879BsqzcrnDFKBY_GN6c3qKOUFtQ'
 
-      expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://localhost:3001#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       expect(@gateway).to receive(:new_order).with(@new_order_args).once.and_return(@order)
       @gateway.create_order(amount: 1, callback_data: 'so?me ran&dom data')
@@ -170,9 +169,8 @@ RSpec.describe StraightServer::Gateway do
         '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&' \
         'address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
         'http://localhost:3000/my_app/my_own_page&auto_redirect=true'
-      signature = 'svymdY74ifZJma4y4w428J9slXic9wY4n1ZJr+BxKHEP0FDDJ7FiBfrx0AC+HH3xw5Oy2tsPFLaZTrGj6DIgPA=='
+      signature = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e30.DMCAvRgzrcf5w0Z879BsqzcrnDFKBY_GN6c3qKOUFtQ'
 
-      expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://new_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
       @order.callback_url = 'http://new_url?with=params'
       @gateway.order_status_changed(@order)

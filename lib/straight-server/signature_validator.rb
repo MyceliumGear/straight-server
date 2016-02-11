@@ -23,10 +23,6 @@ module StraightServer
         jwt_signature(actual)
     end
 
-    def last_nonce_key
-      "#{Config[:'redis.prefix']}:LastNonce:#{gateway.id}"
-    end
-
     def signature
       self.class.signature(**signature_params)
     end
