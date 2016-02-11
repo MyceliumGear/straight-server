@@ -17,6 +17,7 @@ source 'https://rubygems.org' do
   gem 'redis'
   gem 'btcruby', '1.1.1'
   gem 'ruby-protocol-buffers'
+  gem 'jwt'
 end
 
 unless ENV['STRAIGHT_SERVER_IGNORE_ADDONS_GEMFILE'] # use this flag when building straight-server.gemspec

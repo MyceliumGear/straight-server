@@ -100,7 +100,7 @@ RSpec.describe StraightServer::OrdersController do
       @gateway1.check_signature = true
       5.times do |i|
         i += 1
-        send_signed_request @gateway1, "POST", '/gateways/1/orders', amount: 10, keychain_id: i
+        send_signed_request @gateway1, "POST", '/gateways/1/orders', {amount: 10, keychain_id: i}, jwt: true
         expect(response[0]).to eq 200
         expect(response).to render_json_with(status: 0, amount: 10, tid: nil, id: :anything, keychain_id: i, last_keychain_id: i)
       end
@@ -265,7 +265,6 @@ RSpec.describe StraightServer::OrdersController do
       expect(@order_mock).to receive(:cancel)
       allow(StraightServer::Order).to receive(:[]).and_return(@order_mock)
       send_request "POST", "/gateways/1/orders/payment_id/cancel"
-      expect(response).to eq [409, {}, 'X-Nonce is invalid: nil']
       send_signed_request @gateway1, "POST", "/gateways/1/orders/payment_id/cancel"
       expect(response[0]).to eq 204
     end
@@ -359,9 +358,10 @@ RSpec.describe StraightServer::OrdersController do
     @controller = StraightServer::OrdersController.new(env)
   end
 
-  def send_signed_request(gateway, method, path, params={})
+  def send_signed_request(gateway, method, path, params={}, jwt: false)
     env = Hashie::Mash.new('REQUEST_METHOD' => method, 'REQUEST_PATH' => path, 'params' => params, 'HTTP_X_NONCE' => (Time.now.to_f * 1e6).to_i)
-    env['HTTP_X_SIGNATURE'] = StraightServer::SignatureValidator.new(gateway, env).signature
+    sign = jwt ? JWT.encode({}, gateway.secret, 'HS256') : StraightServer::SignatureValidator.new(gateway, env).signature
+    env['HTTP_X_SIGNATURE'] = sign
     @controller = StraightServer::OrdersController.new(env)
   end
 

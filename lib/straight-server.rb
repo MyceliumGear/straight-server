@@ -9,6 +9,7 @@ require 'sequel'
 require 'logmaster'
 require 'straight'
 require 'socket.io-client-simple'
+require 'jwt'
 
 Sequel.extension :migration
 

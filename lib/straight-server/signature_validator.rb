@@ -12,33 +12,15 @@ module StraightServer
     end
 
     def validate!
-      raise InvalidNonce unless valid_nonce?
       raise InvalidSignature unless valid_signature?
       true
     end
 
-    def valid_nonce?
-      nonce = env["#{HTTP_PREFIX}X_NONCE"].to_i
-      redis = StraightServer.redis_connection
-      loop do
-        redis.watch last_nonce_key do
-          last_nonce = redis.get(last_nonce_key).to_i
-          if last_nonce < nonce
-            result = redis.multi do |multi|
-              multi.set last_nonce_key, nonce
-            end
-            return true if result[0] == 'OK'
-          else
-            redis.unwatch
-            return false
-          end
-        end
-      end
-    end
-
     def valid_signature?
       actual = env["#{HTTP_PREFIX}X_SIGNATURE"]
-      actual == signature || actual == self.class.signature2(**signature_params)
+      actual == signature ||
+        actual == self.class.signature2(**signature_params) ||
+        jwt_signature(actual)
     end
 
     def last_nonce_key
@@ -47,6 +29,12 @@ module StraightServer
 
     def signature
       self.class.signature(**signature_params)
+    end
+
+    def jwt_signature(sig)
+      JWT.decode(sig, signature_params[:secret], true, { algorithm: "HS256" })
+    rescue JWT::VerificationError, JWT::DecodeError
+      false
     end
 
     def signature_params
