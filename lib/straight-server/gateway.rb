@@ -523,6 +523,7 @@ module StraightServer
     attr_accessor :active
 
     attr_accessor :after_payment_redirect_to
+    attr_accessor :back_url
     attr_accessor :auto_redirect
 
     attr_accessor :allow_links
