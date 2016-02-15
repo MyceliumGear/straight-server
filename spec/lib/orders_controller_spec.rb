@@ -100,7 +100,7 @@ RSpec.describe StraightServer::OrdersController do
       @gateway1.check_signature = true
       5.times do |i|
         i += 1
-        send_signed_request @gateway1, "POST", '/gateways/1/orders', amount: 10, keychain_id: i
+        send_signed_request @gateway1, "POST", '/gateways/1/orders', {amount: 10, keychain_id: i}
         expect(response[0]).to eq 200
         expect(response).to render_json_with(status: 0, amount: 10, tid: nil, id: :anything, keychain_id: i, last_keychain_id: i)
       end
@@ -265,7 +265,6 @@ RSpec.describe StraightServer::OrdersController do
       expect(@order_mock).to receive(:cancel)
       allow(StraightServer::Order).to receive(:[]).and_return(@order_mock)
       send_request "POST", "/gateways/1/orders/payment_id/cancel"
-      expect(response).to eq [409, {}, 'X-Nonce is invalid: nil']
       send_signed_request @gateway1, "POST", "/gateways/1/orders/payment_id/cancel"
       expect(response[0]).to eq 204
     end

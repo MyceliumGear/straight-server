@@ -45,37 +45,6 @@ RSpec.describe StraightServer::SignatureValidator do
     expect(@validator.valid_signature?).to eq true
   end
 
-  it 'validates nonce' do
-    @validator = described_class.new(
-      Struct.new(:id).new(1),
-      {'HTTP_X_NONCE' => '100500'}
-    )
-    expect(@validator.valid_nonce?).to eq true
-    expect(@validator.valid_nonce?).to eq false
-    @validator.env['HTTP_X_NONCE'] = '100499'
-    expect(@validator.valid_nonce?).to eq false
-    @validator.env['HTTP_X_NONCE'] = '100501'
-    expect(@validator.valid_nonce?).to eq true
-    expect(@validator.valid_nonce?).to eq false
-  end
-
-  it 'validates nonce in a thread-safe way' do
-    # TODO: test on real concurrency (JRuby?)
-    @validator    = described_class.new(
-      Struct.new(:id).new(2),
-      {'HTTP_X_NONCE' => '100500'}
-    )
-    thread_number = 100
-    @threads      = thread_number.times.map do |i|
-      Thread.new do
-        sleep (thread_number - i) / 10000.0
-        Thread.current[:result] = @validator.valid_nonce?
-      end
-    end
-    @threads.each(&:join)
-    expect(@threads.select { |thread| thread[:result] }.size).to eq 1
-  end
-
   it 'raises exceptions if invalid' do
     @validator = described_class.new(
       Struct.new(:id, :secret).new(3, 'abc'),
@@ -88,7 +57,6 @@ RSpec.describe StraightServer::SignatureValidator do
     )
     @validator.env['HTTP_X_SIGNATURE'] = @validator.signature
     expect(@validator.validate!).to eq true
-    expect { @validator.validate! }.to raise_error(described_class::InvalidNonce)
     @validator.env['HTTP_X_NONCE'] = '2'
     expect { @validator.validate! }.to raise_error(described_class::InvalidSignature)
   end

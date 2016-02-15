@@ -12,37 +12,14 @@ module StraightServer
     end
 
     def validate!
-      raise InvalidNonce unless valid_nonce?
       raise InvalidSignature unless valid_signature?
       true
     end
 
-    def valid_nonce?
-      nonce = env["#{HTTP_PREFIX}X_NONCE"].to_i
-      redis = StraightServer.redis_connection
-      loop do
-        redis.watch last_nonce_key do
-          last_nonce = redis.get(last_nonce_key).to_i
-          if last_nonce < nonce
-            result = redis.multi do |multi|
-              multi.set last_nonce_key, nonce
-            end
-            return true if result[0] == 'OK'
-          else
-            redis.unwatch
-            return false
-          end
-        end
-      end
-    end
-
     def valid_signature?
       actual = env["#{HTTP_PREFIX}X_SIGNATURE"]
-      actual == signature || actual == self.class.signature2(**signature_params)
-    end
-
-    def last_nonce_key
-      "#{Config[:'redis.prefix']}:LastNonce:#{gateway.id}"
+      actual == signature ||
+        actual == self.class.signature2(**signature_params)
     end
 
     def signature

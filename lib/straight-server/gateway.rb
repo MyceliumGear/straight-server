@@ -286,6 +286,7 @@ module StraightServer
         begin
           request = Net::HTTP::Get.new(uri.request_uri)
           request.add_field 'X-Signature', SignatureValidator.signature(method: 'GET', request_uri: uri.request_uri, secret: secret, nonce: nil, body: nil)
+
           http         = Net::HTTP.new(uri.host, uri.port)
           http.use_ssl = true if uri.scheme == 'https'
           response     = http.start do |http|
