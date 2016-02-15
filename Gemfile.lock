@@ -161,23 +161,23 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  btcruby (= 1.1.1)
+  btcruby (= 1.1.1)!
   byebug
   factory_girl
-  faye-websocket
+  faye-websocket!
   github_api (= 0.11.3)
-  goliath
+  goliath!
   hashie
-  httparty
+  httparty!
   jeweler (~> 2.0.1)
-  logmaster (~> 0.2.0)
-  redis
+  logmaster (~> 0.2.0)!
+  redis!
   rspec
-  ruby-hmac
-  ruby-protocol-buffers
-  satoshi-unit (>= 0.1.8)
-  sequel
-  socket.io-client-simple
+  ruby-hmac!
+  ruby-protocol-buffers!
+  satoshi-unit (>= 0.1.8)!
+  sequel!
+  socket.io-client-simple!
   sqlite3
   straight!
   timecop
