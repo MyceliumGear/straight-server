@@ -1,4 +1,20 @@
 GIT
+  remote: git://github.com/MyceliumGear/cashila-api.git
+  revision: 128f1d1a1079559173592b8f075e677a70df58de
+  specs:
+    cashila-api (0.3.1)
+      faraday (~> 0.9.2)
+      multi_json (~> 1.11)
+
+GIT
+  remote: git://github.com/MyceliumGear/gatecoin-api.git
+  revision: f33195020d5fdfcbbaa4b2d5d8eba3a92cac72dd
+  specs:
+    gatecoin-api (0.2.0)
+      faraday (~> 0.9.2)
+      multi_json (~> 1.11)
+
+GIT
   remote: git://github.com/MyceliumGear/straight.git
   revision: 312884ba0029c32f1ecce7ba922ddca78d18a453
   specs:
@@ -106,6 +122,7 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (~> 1.2)
+    pg (0.18.4)
     pony (1.11)
       mail (>= 2.0)
     rack (1.6.4)
@@ -163,14 +180,17 @@ PLATFORMS
 DEPENDENCIES
   btcruby (= 1.1.1)!
   byebug
+  cashila-api!
   factory_girl
   faye-websocket!
+  gatecoin-api!
   github_api (= 0.11.3)
   goliath!
   hashie
   httparty!
   jeweler (~> 2.0.1)
   logmaster (~> 0.2.0)!
+  pg!
   redis!
   rspec
   ruby-hmac!
