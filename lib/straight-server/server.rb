@@ -81,7 +81,7 @@ module StraightServer
       # no block was called, means no route matched. Let's render 404
       return [404, {}, "#{env['REQUEST_METHOD']} #{env['REQUEST_PATH']} Not found"]
     rescue e
-      StraightServer.logger.error("Process request error: #{e.inspect}\n#{e.backtrace}\n")
+      StraightServer.logger.error("Process request error: #{e.inspect}\n#{e.backtrace.join("\n")}\n")
       [500, {}, "#{env['REQUEST_METHOD']} #{env['REQUEST_PATH']} Server Error"]
     end
 
