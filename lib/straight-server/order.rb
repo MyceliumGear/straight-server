@@ -189,7 +189,7 @@ module StraightServer
       self.payment_id = gateway.sign_with_secret("#{keychain_id}#{amount}#{created_at}#{(Order.max(:id) || 0)+1}")
 
       # Save info about current exchange rate at the time of purchase
-      unless gateway.default_currency == 'BTC'
+      if !gateway.address_provider.takes_fees? && gateway.default_currency != 'BTC'
         self.data = {} unless self.data
         self.data[:exchange_rate] = { price: gateway.current_exchange_rate, currency: gateway.default_currency }
       end
