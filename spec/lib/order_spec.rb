@@ -20,6 +20,8 @@ RSpec.describe StraightServer::Order do
     allow(@gateway).to receive(:fetch_transactions_for).with(anything).and_return([])
     allow(@gateway).to receive(:order_status_changed).with(anything)
     allow(@gateway).to receive(:sign_with_secret).with(anything).and_return("1", "2", "3")
+    allow(@gateway).to receive(:address_provider).
+      and_return(double("address_provider", takes_fees?: false))
     allow(StraightServer::Gateway).to receive(:find_by_id).and_return(@gateway)
 
     websockets = {}
@@ -77,9 +79,19 @@ RSpec.describe StraightServer::Order do
     expect( -> { create(:order, gateway_id: @gateway.id) }).to raise_exception(Sequel::ValidationFailed, "gateway is inactive, cannot create order for inactive gateway")
   end
 
-  it "adds exchange rate at the moment of purchase to the data hash" do
-    order = create(:order, gateway_id: @gateway.id)
-    expect(order.data[:exchange_rate]).to eq({ price: 111, currency: 'USD' })
+  context "when the gateway address provider doesn't take fees" do
+    it "adds exchange rate at the moment of purchase to the data hash" do
+      order = create(:order, gateway_id: @gateway.id)
+      expect(order.data[:exchange_rate]).to eq({ price: 111, currency: 'USD' })
+    end
+  end
+
+  context "when the gateway address provider takes fees" do
+    it "doesn't add exchange rate at the moment of purchase to the data hash" do
+      allow(@gateway.address_provider).to receive(:takes_fees?).and_return(true)
+      order = create(:order, gateway_id: @gateway.id)
+      expect(order.data).to be_nil
+    end
   end
 
   it "returns last_keychain_id for the gateway along with other order data" do
