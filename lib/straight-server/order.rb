@@ -169,7 +169,7 @@ module StraightServer
     end
 
     def to_http_params
-      {
+      result = {
         order_id:                  id,
         amount:                    amount,
         amount_in_btc:             amount_in_btc(as: :string),
@@ -183,6 +183,14 @@ module StraightServer
         after_payment_redirect_to: after_payment_redirect_to,
         auto_redirect:             auto_redirect,
       }.map { |k, v| "#{k}=#{v}" }.join('&')
+      if data.respond_to?(:keys)
+        keys = data.keys.select { |key| key.kind_of? String }
+        if keys.size > 0
+          result << '&'
+          result << keys.map { |key| "data[#{key}]=#{CGI.escape(data[key].to_s)}" }.join('&')
+        end
+      end
+      result
     end
 
     def before_create
