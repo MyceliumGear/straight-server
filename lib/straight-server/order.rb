@@ -187,7 +187,7 @@ module StraightServer
         keys = data.keys.select { |key| key.kind_of? String }
         if keys.size > 0
           result << '&'
-          result << keys.map { |key| "data[#{key}]=#{CGI.escape(data[key].to_s)}" }.join('&')
+          result << keys.map { |key| "data[#{CGI.escape(key)}]=#{CGI.escape(data[key].to_s)}" }.join('&')
         end
       end
       result
