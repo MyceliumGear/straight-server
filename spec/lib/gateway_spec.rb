@@ -129,9 +129,9 @@ RSpec.describe StraightServer::Gateway do
     it "sends a request to the callback_url and saves response" do
       url =
         'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
-        'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
+        'http%3A%2F%2Flocalhost%3A3000%2Fmy_app%2Fmy_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
         'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1&transaction_ids=[]'
-      signature = 'UK0DWCoWUfsEC3v1UtIK8FwRIT3tSDL4HxRFdwaVWYWgwtUwCVt0iO1a6s7akDfk+M/c5XXW6G3Q4zGy8zs09g=='
+      signature = 'NlpjdwuWPNDQE8mEiD5U5vZdTxuN5ucPgFdZjIdSj3ILUqvVTIb5RXspaStIeplxBzkHzk1WukQZ5FlHH4A3Yg=='
 
       stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 200, body: 'okay')
       expect(@gateway).to receive(:sleep).exactly(0).times
@@ -142,9 +142,9 @@ RSpec.describe StraightServer::Gateway do
     it "keeps sending request according to the callback schedule if there's an error" do
       url =
         'http://localhost:3001/payment-callback?address=address_1&after_payment_redirect_to=' \
-        'http://localhost:3000/my_app/my_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
+        'http%3A%2F%2Flocalhost%3A3000%2Fmy_app%2Fmy_own_page&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
         'auto_redirect=true&keychain_id=1&last_keychain_id=0&order_id=1&status=1&tid=tid1&transaction_ids=[]'
-      signature = 'UK0DWCoWUfsEC3v1UtIK8FwRIT3tSDL4HxRFdwaVWYWgwtUwCVt0iO1a6s7akDfk+M/c5XXW6G3Q4zGy8zs09g=='
+      signature = 'NlpjdwuWPNDQE8mEiD5U5vZdTxuN5ucPgFdZjIdSj3ILUqvVTIb5RXspaStIeplxBzkHzk1WukQZ5FlHH4A3Yg=='
 
       stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 404, body: '')
       expect(@gateway).to receive(:sleep).exactly(10).times
@@ -155,8 +155,8 @@ RSpec.describe StraightServer::Gateway do
       uri =
         '/payment-callback?order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&' \
         'status=1&address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=1&after_payment_redirect_to=' \
-        'http://localhost:3000/my_app/my_own_page&auto_redirect=true&callback_data=so%3Fme+ran%26dom+data'
-      signature = 'GCnzM/YGveTVev6rfjU9wTa7pIa5s2mlPv4Bq/xipFi5uPJVWBWDCtbq0GMUIfPnlRk8ap8S/68M1vn1mX0B9Q=='
+        'http%3A%2F%2Flocalhost%3A3000%2Fmy_app%2Fmy_own_page&auto_redirect=true&callback_data=so%3Fme+ran%26dom+data'
+      signature = 'HNxHa3ioig+dYFx4WSGShT38HgR9FoSAt25JLXXM8xo5BEn4aI53jh8/8i0U2z0HQCHuZP5h5iPL1rg1MV97mQ=='
 
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://localhost:3001#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
@@ -169,8 +169,8 @@ RSpec.describe StraightServer::Gateway do
       uri =
         '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&' \
         'address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
-        'http://localhost:3000/my_app/my_own_page&auto_redirect=true'
-      signature = 'svymdY74ifZJma4y4w428J9slXic9wY4n1ZJr+BxKHEP0FDDJ7FiBfrx0AC+HH3xw5Oy2tsPFLaZTrGj6DIgPA=='
+        'http%3A%2F%2Flocalhost%3A3000%2Fmy_app%2Fmy_own_page&auto_redirect=true'
+      signature = '99VXcG8iKEDxtmxBeNch8WWBAs+j6HpSzpaOExhrGaxPbsdbpF4I3b9sULx7u+jdxZmv7lHXWYLVoW3FXOATIQ=='
 
       expect(StraightServer::SignatureValidator.signature(nonce: nil, body: nil, method: 'GET', request_uri: uri, secret: @gateway.secret)).to eq signature
       stub_request(:get, "http://new_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
@@ -182,7 +182,7 @@ RSpec.describe StraightServer::Gateway do
       uri =
         '/?with=params&order_id=1&amount=10&amount_in_btc=0.0000001&amount_paid_in_btc=0.0&status=1&' \
         'address=address_1&tid=tid1&transaction_ids=[]&keychain_id=1&last_keychain_id=0&after_payment_redirect_to=' \
-        'http://localhost:3000/my_app/my_own_page&auto_redirect=true'
+        'http%3A%2F%2Flocalhost%3A3000%2Fmy_app%2Fmy_own_page&auto_redirect=true'
       signature = 'fq4NnZqrig2GAqkDkEdJ/2nf5Hcp4WqHlApyOEW0JMo5cSCkI+YZ6Mua053s49dUUafJNwWxaSo1VPIfNQ4g/w=='
 
       stub_request(:get, "http://new\"_url#{uri}").with(headers: {'X-Signature' => signature}).to_return(status: 200, body: '')
