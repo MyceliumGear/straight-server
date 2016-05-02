@@ -294,7 +294,7 @@ module StraightServer
           end
           order.callback_response = { code: response.code, body: response.body }
           order.save
-          raise CallbackUrlBadResponse unless response.code.to_i == 200
+          raise CallbackUrlBadResponse unless response.is_a?(Net::HTTPSuccess)
         rescue => ex
           if delay < CALLBACK_URL_ATTEMPT_TIMEFRAME
             sleep(delay)

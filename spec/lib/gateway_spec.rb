@@ -137,6 +137,10 @@ RSpec.describe StraightServer::Gateway do
       expect(@gateway).to receive(:sleep).exactly(0).times
       @gateway.order_status_changed(@order)
       expect(@order.callback_response).to eq(code: '200', body: 'okay')
+
+      stub_request(:get, url).with(headers: {'X-Signature' => signature}).to_return(status: 204, body: 'okay')
+      @gateway.order_status_changed(@order)
+      expect(@order.callback_response).to eq(code: '204', body: 'okay')
     end
 
     it "keeps sending request according to the callback schedule if there's an error" do
