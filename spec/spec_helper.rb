@@ -26,8 +26,8 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:each) do |spec|
-    # puts spec.description
     StraightServer.db_connection[:orders].delete
+    StraightServer.db_connection[:gateways].delete
     logger_mock = double("logger mock")
     [:debug, :info, :warn, :fatal, :unknown, :blank_lines].each do |e|
       allow(logger_mock).to receive(e)

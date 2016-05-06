@@ -66,6 +66,40 @@ module StraightServer
       where(address: address).order(Sequel.desc(:reused)).limit(1).first
     end
 
+    # Reprocess expired order:
+    # — Order status will be set according to newly found transactions
+    # — Callback will run if status is actually changed
+    # If there is newer order with the same address, all and only transactions which
+    # couldn't belong to that newer order (their block_height < order's block_height_created_at)
+    # will be taken into account.
+    def reprocess!
+      raise RuntimeError.new("Order is not in final state") if status < 2
+
+      confirmations_required = gateway.confirmations_required
+
+      transactions = gateway.fetch_transactions_for(address)
+      transactions = Straight::Transaction.from_hashes transactions
+      transactions.select! { |x| x.confirmations >= confirmations_required } if confirmations_required > 0
+
+      same_address_orders = Order.exclude(id: id).where(gateway_id: gateway.id, address: self.address)
+      if same_address_orders.count > 0
+        minimum_disallowed_block_height = same_address_orders.select_map(:block_height_created_at).min
+        transactions.select! { |x| (x.block_height != -1) && (x.block_height < minimum_disallowed_block_height) }
+      end
+
+      result = get_transaction_status(transactions: transactions)
+      result[:status] = 3 if result[:status] == -3
+
+      if result[:status] != @status
+        @status = self[:status] = result[:status]
+        self.amount_paid = result[:amount_paid]
+        self.accepted_transactions = result[:accepted_transactions]
+        save
+
+        gateway.order_status_changed(self)
+      end
+    end
+
     # This method is called from the Straight::OrderModule::Prependable
     # using super(). The reason it is reloaded here is because sometimes
     # we want to query the DB first and see if status has changed there.
