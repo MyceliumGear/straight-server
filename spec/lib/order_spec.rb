@@ -4,8 +4,6 @@ require 'spec_helper'
 RSpec.describe StraightServer::Order do
 
   before(:each) do
-    # clean the database
-    StraightServer.db_connection.run("DELETE FROM orders")
     @gateway = double("Straight Gateway mock")
     allow(@gateway).to receive(:id).and_return(1)
     allow(@gateway).to receive(:active).and_return(true)
@@ -29,6 +27,97 @@ RSpec.describe StraightServer::Order do
       websockets[g.id] = {}
     end
     StraightServer::GatewayModule.class_variable_set(:@@websockets, websockets)
+  end
+
+  describe Straight::Order, '#reprocess!' do
+    before(:each) do
+      @order.amount = 10
+      @order.gateway = @gateway
+      @order.address = 'address'
+      @order.block_height_created_at = 1234
+      @order.instance_variable_set(:@status, 5)
+
+      allow(@gateway).to receive(:confirmations_required).and_return(0)
+    end
+
+    it "raise exception non-finished orders" do
+      @order.instance_variable_set(:@status, 1)
+      expect{ @order.reprocess! }.to raise_exception(RuntimeError)
+    end
+
+    it "changes expired order's status and runs gateway callbacks if there are new transactions for order" do
+      expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
+        [{ tid: 'xxx1', total_amount: 9}],
+        [{ tid: 'xxx1', total_amount: 9}, {tid: 'xxx2', total_amount: 1}]
+      )
+
+      expect(@gateway).to receive(:order_status_changed).with(@order)
+
+      @order.reprocess!
+
+      expect(@order.status).to eq 3
+      expect(@order.amount_paid).to eq 9
+      expect(@order.accepted_transactions.length).to eq 1
+
+      expect(@gateway).to receive(:order_status_changed).with(@order)
+
+      @order.reprocess!
+
+      @order.reload
+      expect(@order.status).to eq 2
+      expect(@order.amount_paid).to eq 10
+      expect(@order.accepted_transactions.length).to eq 2
+    end
+
+    it "counts only transactions with confirmations >= gateway's confirmations_required" do
+      expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
+        [{ tid: 'xxx1', total_amount: 3, confirmations: 1}, {tid: 'xxx2', total_amount: 7, confirmations: 2}]
+      )
+      expect(@gateway).to receive(:confirmations_required).and_return(2)
+      expect(@gateway).to receive(:order_status_changed).with(@order)
+
+      @order.reprocess!
+
+      expect(@order.status).to eq 3
+      expect(@order.amount_paid).to eq 7
+      expect(@order.accepted_transactions.length).to eq 1
+    end
+
+    it "does nothing if there aren't new transactions for order" do
+      @order.instance_variable_set(:@status, 3)
+
+      expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
+        [{ tid: 'xxx1', total_amount: 5}]
+      )
+
+      expect(@gateway).to_not receive(:order_status_changed)
+
+      @order.reprocess!
+    end
+
+    it "ignores new transactions if they could belong to newer order with the same address" do
+      another_order = create(:order,
+        gateway_id: @gateway.id,
+        amount: 2,
+        address: @order.address,
+        block_height_created_at: @order.block_height_created_at + 5
+      )
+
+      expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
+        [
+          {tid: 'this_one_ok', total_amount: 3, confirmations: 2, block_height: @order.block_height_created_at + 1},
+          {tid: 'this_one_not_ok', total_amount: 7, confirmations: 2, block_height: another_order.block_height_created_at},
+          {tid: 'not_ok_too', total_amount: 7, confirmations: 2, block_height: -1}
+        ]
+      )
+      expect(@gateway).to receive(:confirmations_required).and_return(2)
+      expect(@gateway).to receive(:order_status_changed).with(@order)
+
+      @order.reprocess!
+
+      expect(@order.status).to eq 3
+      expect(@order.amount_paid).to eq 3
+    end
   end
 
   it "prepares data as http params" do
