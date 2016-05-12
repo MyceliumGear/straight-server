@@ -16,7 +16,7 @@ GIT
 
 GIT
   remote: git://github.com/MyceliumGear/straight.git
-  revision: 312884ba0029c32f1ecce7ba922ddca78d18a453
+  revision: 67b2e1679fb8583f8dd9cf677b7a11305ca328ad
   specs:
     straight (1.0.0)
       btcruby (~> 1.0)
@@ -43,7 +43,7 @@ GEM
     byebug (5.0.0)
       columnize (= 0.9.0)
     columnize (0.9.0)
-    concurrent-ruby (1.0.0)
+    concurrent-ruby (1.0.2)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
     descendants_tracker (0.0.4)
@@ -88,7 +88,7 @@ GEM
     hashie (3.4.2)
     highline (1.7.3)
     http_parser.rb (0.6.0)
-    httparty (0.13.5)
+    httparty (0.13.7)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
     i18n (0.7.0)
