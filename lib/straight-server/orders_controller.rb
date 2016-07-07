@@ -44,7 +44,8 @@ module StraightServer
           data:             @params['data'],
           description:      @params['description'],
           after_payment_redirect_to: @params['after_payment_redirect_to'],
-          auto_redirect:    @params['auto_redirect']
+          auto_redirect:    @params['auto_redirect'],
+          callback_url:     @params['callback_url']
         }
 
         order = @gateway.create_order(order_data)
