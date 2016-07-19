@@ -213,8 +213,8 @@ module StraightServer
         tid:                       tid, # @deprecated
         transaction_ids:           accepted_transactions.map(&:tid),
         keychain_id:               keychain_id,
-        last_keychain_id:          @gateway.last_keychain_id,
-        after_payment_redirect_to: CGI.escape(after_payment_redirect_to),
+        last_keychain_id:          gateway.last_keychain_id,
+        after_payment_redirect_to: CGI.escape(after_payment_redirect_to.to_s),
         auto_redirect:             auto_redirect,
       }.map { |k, v| "#{k}=#{v}" }.join('&')
       if data.respond_to?(:keys)
