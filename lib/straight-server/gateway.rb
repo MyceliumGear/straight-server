@@ -272,9 +272,9 @@ module StraightServer
         url = order.callback_url || self.callback_url
         return if url.to_s.empty?
 
-        # Composing the request uri here
-        callback_data = order.callback_data ? "&callback_data=#{CGI.escape(order.callback_data)}" : ''
         begin
+          # Composing the request uri here
+          callback_data = order.callback_data ? "&callback_data=#{CGI.escape(order.callback_data.to_s)}" : ''
           uri = URI.parse("#{url}#{url.include?('?') ? '&' : '?'}#{order.to_http_params}#{callback_data}")
         rescue => ex
           StraightServer.logger.warn "Parse callback URI failed with #{ex.inspect}"
