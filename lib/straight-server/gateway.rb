@@ -106,7 +106,7 @@ module StraightServer
     def fetch_transactions_for(address)
       super
     rescue Straight::Blockchain::Adapter::BitcoinAddressInvalid => e
-      StraightServer.logger.warn "Address seems to be invalid, ignoring it. #{e.message}"
+      StraightServer.logger.warn "Address #{address} seems to be invalid, ignoring it. #{e.message}"
       return []
     end
 
@@ -277,7 +277,7 @@ module StraightServer
           callback_data = order.callback_data ? "&callback_data=#{CGI.escape(order.callback_data.to_s)}" : ''
           uri = URI.parse("#{url}#{url.include?('?') ? '&' : '?'}#{order.to_http_params}#{callback_data}")
         rescue => ex
-          StraightServer.logger.warn "Parse callback URI failed with #{ex.inspect}"
+          StraightServer.logger.warn "Parsing callback URI for gateway #{id} failed with #{ex.inspect}"
           return
         end
 
@@ -300,7 +300,7 @@ module StraightServer
             sleep(delay)
             send_callback_http_request(order, delay: delay*2)
           else
-            StraightServer.logger.warn "Callback request for order #{order.id} failed with #{ex.inspect}, see order's #callback_response field for details"
+            StraightServer.logger.info "Callback request for order #{order.id} failed with #{ex.inspect}, see order's #callback_response field for details"
           end
         end
 

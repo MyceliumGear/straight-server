@@ -22,8 +22,8 @@ module StraightServer
         ip = @env['HTTP_X_FORWARDED_FOR'].to_s
         ip = @env['REMOTE_ADDR'] if ip.empty?
         if StraightServer::Throttler.new(@gateway.id).deny?(ip)
-          StraightServer.logger.warn message = "Too many requests, please try again later"
-          return [429, {}, message]
+          StraightServer.logger.debug "Request to #{@gateway.id} from #{ip} denied by throttler"
+          return [429, {}, "Too many requests, please try again later"]
         end
       end
 
@@ -57,7 +57,7 @@ module StraightServer
         end
         [200, { 'Content-Type': 'application/json' }, add_callback_data_warning(order).to_json]
       rescue Sequel::ValidationFailed => e
-        StraightServer.logger.warn(
+        StraightServer.logger.debug(
           "VALIDATION ERRORS in order, cannot create it:\n" +
           "#{e.message.split(",").each_with_index.map { |e,i| "#{i+1}. #{e.lstrip}"}.join("\n") }\n" +
           "Order data: #{order_data.inspect}\n"
@@ -66,8 +66,8 @@ module StraightServer
       rescue Straight::Gateway::OrderAmountInvalid => e
         [409, {}, "Invalid order: #{e.message}" ]
       rescue StraightServer::GatewayModule::GatewayInactive
-        StraightServer.logger.warn message = "The gateway is inactive, you cannot create order with it"
-        [503, {}, message ]
+        StraightServer.logger.debug "Order creation attempt on inactive gateway #{@gateway.id}"
+        [503, {}, "The gateway is inactive, you cannot create order with it"]
       end
     end
 
@@ -203,13 +203,15 @@ module StraightServer
         response
 
       rescue RoutingError, Gateway::RecordNotFound => e
-        StraightServer.logger.warn e.message
+        StraightServer.logger.debug e.message
         [404, {}, e.message]
       rescue SignatureValidator::InvalidNonce
-        StraightServer.logger.warn message = "X-Nonce is invalid: #{@env["#{HTTP_PREFIX}X_NONCE"].inspect}"
+        message = "X-Nonce is invalid: #{@env["#{HTTP_PREFIX}X_NONCE"].inspect}"
+        StraightServer.logger.debug "Gateway #{@gateway.id}, #{message}"
         [409, {}, message]
       rescue SignatureValidator::InvalidSignature
-        StraightServer.logger.warn message = "X-Signature is invalid: #{@env["#{HTTP_PREFIX}X_SIGNATURE"].inspect}"
+        message = "X-Signature is invalid: #{@env["#{HTTP_PREFIX}X_SIGNATURE"].inspect}"
+        StraightServer.logger.debug "Gateway #{@gateway.id}, #{message}"
         [409, {}, message]
       end
 
