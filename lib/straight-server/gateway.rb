@@ -209,7 +209,6 @@ module StraightServer
         increment_order_counter!(statuses[order.old_status], -1) if order.old_status
         increment_order_counter!(statuses[order.status])
       end
-      return if order.status < 0
       super
     end
 
