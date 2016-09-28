@@ -88,6 +88,7 @@ module StraightServer
       end
 
       result = get_transaction_status(transactions: transactions)
+      return if result[:status] == 0
       result[:status] = 3 if result[:status] == -3
 
       if result[:status] != @status
