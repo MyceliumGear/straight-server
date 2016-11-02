@@ -108,6 +108,9 @@ module StraightServer
     rescue Straight::Blockchain::Adapter::BitcoinAddressInvalid => e
       StraightServer.logger.warn "Address #{address} seems to be invalid, ignoring it. #{e.message}"
       return []
+    rescue => ex
+      StraightServer.logger.debug "fetch_transactions_for #{address} failed: #{ex.inspect}"
+      return []
     end
 
     # Creates a new order and saves into the DB. Checks if the MD5 hash
