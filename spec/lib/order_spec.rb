@@ -255,7 +255,11 @@ RSpec.describe StraightServer::Order do
       end
 
       it "doesn't save order if the amount is invalid" do
-        expect( -> { create(:order, amount: 0) }).to raise_error(Sequel::ValidationFailed)
+        expect( -> { create(:order, amount: -1) }).to raise_error(Sequel::ValidationFailed)
+      end
+
+      it "zero amount is valid and means that any payment is acceptable" do
+        expect( -> { create(:order, amount: 0) }).not_to raise_error(Sequel::ValidationFailed)
       end
 
       it "doesn't save order if gateway_id is invalid" do

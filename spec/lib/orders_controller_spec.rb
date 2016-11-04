@@ -25,6 +25,12 @@ RSpec.describe StraightServer::OrdersController do
       expect(response).to render_json_with(status: 0, amount: 10, address: "address1", tid: nil, id: :anything, keychain_id: @gateway.last_keychain_id, last_keychain_id: @gateway.last_keychain_id)
     end
 
+    it "creates an zero-amount order and renders its attrs in json" do
+      allow(StraightServer::Thread).to receive(:new) # ignore periodic status checks, we're not testing it here
+      send_request "POST", '/gateways/2/orders', amount: 0
+      expect(response).to render_json_with(status: 0, amount: 0, address: "address1", tid: nil, id: :anything, keychain_id: @gateway.last_keychain_id, last_keychain_id: @gateway.last_keychain_id)
+    end
+
     it "creates order from gateway on DB and render 200 HTTP status" do
       run_silently { StraightServer::Gateway = StraightServer::GatewayOnDB }
 
@@ -40,9 +46,9 @@ RSpec.describe StraightServer::OrdersController do
     end
 
     it "renders 409 error when an order cannot be created due to invalid amount" do
-      send_request "POST", '/gateways/2/orders', amount: 0
+      send_request "POST", '/gateways/2/orders', amount: -1
       expect(response[0]).to eq(409)
-      expect(response[2]).to eq("Invalid order: amount cannot be nil and should be more than 0")
+      expect(response[2]).to eq("Invalid order: amount cannot be nil or less than 0")
     end
 
     it "renders 409 error when an order cannot be created due to other validation errors" do
