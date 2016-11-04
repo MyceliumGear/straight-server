@@ -194,7 +194,7 @@ module StraightServer
     def validate
       super # calling Sequel::Model validator
       errors.add(:amount,      "is not numeric") if !amount.kind_of?(Numeric)
-      errors.add(:amount,      "should be more than 0") if amount && amount <= 0
+      errors.add(:amount,      "is less than 0") if amount && amount < 0
       errors.add(:amount_paid, "is not numeric") if !amount.kind_of?(Numeric)
       errors.add(:gateway_id,  "is invalid") if !gateway_id.kind_of?(Numeric) || gateway_id <= 0
       errors.add(:description, "should be shorter than 256 characters") if description.kind_of?(String) && description.length > 255
