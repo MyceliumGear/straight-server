@@ -139,10 +139,8 @@ module StraightServer
       amount_in_btc(field: amount_paid, as: :string)
     end
 
-    TRANSACTION_AMOUNT_MINIMUM = 547
     def amount_to_pay
-      actual_amount = amount.to_i - amount_paid.to_i
-      [actual_amount, TRANSACTION_AMOUNT_MINIMUM].max
+      amount.to_i - amount_paid.to_i
     end
 
     def amount_to_pay_in_btc

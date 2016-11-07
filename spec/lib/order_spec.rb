@@ -213,7 +213,7 @@ RSpec.describe StraightServer::Order do
     expect(@order.amount_to_pay_in_btc).to eq '0.00006999'
 
     @order.amount_paid = 9999
-    expect(@order.amount_to_pay_in_btc).to eq '0.00000547'
+    expect(@order.amount_to_pay_in_btc).to eq '0.00000001'
   end
 
   describe "DB interaction" do
