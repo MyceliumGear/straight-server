@@ -9,6 +9,7 @@ RSpec.describe StraightServer::Order do
     allow(@gateway).to receive(:active).and_return(true)
     allow(@gateway).to receive(:order_status_changed)
     allow(@gateway).to receive(:test_mode).and_return(false)
+    allow(@gateway).to receive(:donation_mode).with(no_args).and_return(false)
     allow(@gateway).to receive(:save)
     allow(@gateway).to receive(:increment_order_counter!)
     allow(@gateway).to receive(:current_exchange_rate).and_return(111)
