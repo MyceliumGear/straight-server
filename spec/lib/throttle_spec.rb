@@ -26,6 +26,10 @@ RSpec.describe StraightServer::Throttler do
       expect(throttler1.deny?('127.0.0.1')).to eq true
       expect(throttler2.deny?('127.0.0.1')).to eq false
     end
+    Timecop.freeze(now + 3) do
+      expect { throttler1.check!('127.0.0.1') }.to_not raise_error
+      expect { throttler1.check!('127.0.0.1') }.to raise_error(described_class::RequestDenied, "Request to gateway_1 from 127.0.0.1 denied by throttler")
+    end
   end
 
   it 'bans by ip' do

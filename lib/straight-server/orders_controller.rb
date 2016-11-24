@@ -7,6 +7,8 @@ module StraightServer
 
     attr_reader :response
 
+    JSON_HEADER = { 'Content-Type': 'application/json'.freeze }.freeze
+
     def initialize(env)
       @env          = env
       @params       = env.params
@@ -16,35 +18,26 @@ module StraightServer
     end
 
     def create
-      if @gateway.check_signature
-        StraightServer::SignatureValidator.new(@gateway, @env).validate!
-      else
-        ip = @env['HTTP_X_FORWARDED_FOR'].to_s
-        ip = @env['REMOTE_ADDR'] if ip.empty?
-        if StraightServer::Throttler.new(@gateway.id).deny?(ip)
-          StraightServer.logger.debug "Request to #{@gateway.id} from #{ip} denied by throttler"
-          return [429, {}, "Too many requests, please try again later"]
-        end
-      end
+      validate_signature || throttle
 
       begin
 
         # This is to inform users of previous version of a deprecated param
         # It will have to be removed at some point.
         if @params['order_id']
-          return [409, {}, "Error: order_id is no longer a valid param. Use keychain_id instead and consult the documentation." ]
+          return [409, {}, "Error: order_id is no longer a valid param. Use keychain_id instead and consult the documentation."]
         end
 
         order_data = {
-          amount:           @params['amount'], # this is satoshi
-          currency:         @params['currency'],
-          btc_denomination: @params['btc_denomination'],
-          keychain_id:      @params['keychain_id'],
-          callback_data:    @params['callback_data'],
-          data:             @params['data'],
-          description:      @params['description'],
+          amount:                    @params['amount'], # this is satoshi
+          currency:                  @params['currency'],
+          btc_denomination:          @params['btc_denomination'],
+          keychain_id:               @params['keychain_id'],
+          callback_data:             @params['callback_data'],
+          data:                      @params['data'],
+          description:               @params['description'],
           after_payment_redirect_to: @params['after_payment_redirect_to'],
-          auto_redirect:    @params['auto_redirect']
+          auto_redirect:             @params['auto_redirect']
         }
 
         order = @gateway.create_order(order_data)
@@ -55,16 +48,16 @@ module StraightServer
             order.start_periodic_status_check
           end
         end
-        [200, { 'Content-Type': 'application/json' }, add_callback_data_warning(order).to_json]
+        [200, JSON_HEADER, add_callback_data_warning(order).to_json]
       rescue Sequel::ValidationFailed => e
         StraightServer.logger.debug(
           "VALIDATION ERRORS in order, cannot create it:\n" +
-          "#{e.message.split(",").each_with_index.map { |e,i| "#{i+1}. #{e.lstrip}"}.join("\n") }\n" +
-          "Order data: #{order_data.inspect}\n"
+            "#{e.message.split(",").each_with_index.map { |e, i| "#{i+1}. #{e.lstrip}" }.join("\n") }\n" +
+            "Order data: #{order_data.inspect}\n"
         )
-        [409, {}, "Invalid order: #{e.message}" ]
+        [409, {}, "Invalid order: #{e.message}"]
       rescue Straight::Gateway::OrderAmountInvalid => e
-        [409, {}, "Invalid order: #{e.message}" ]
+        [409, {}, "Invalid order: #{e.message}"]
       rescue StraightServer::GatewayModule::GatewayInactive
         StraightServer.logger.debug "Order creation attempt on inactive gateway #{@gateway.id}"
         [503, {}, "The gateway is inactive, you cannot create order with it"]
@@ -72,16 +65,14 @@ module StraightServer
     end
 
     def show
-      if @gateway.check_signature
-        StraightServer::SignatureValidator.new(@gateway, @env).validate!
-      end
+      validate_signature(if_unforced: false)
 
       order = find_order
 
       if order
         order.status(reload: true)
         order.save if order.status_changed?
-        [200, { 'Content-Type': 'application/json' }, order.to_json]
+        [200, JSON_HEADER, order.to_json]
       end
     end
 
@@ -104,9 +95,7 @@ module StraightServer
     end
 
     def cancel
-      if @gateway.check_signature
-        StraightServer::SignatureValidator.new(@gateway, @env).validate!
-      end
+      validate_signature(if_unforced: false)
 
       if (order = find_order)
         order.status(reload: true)
@@ -121,7 +110,7 @@ module StraightServer
     end
 
     def last_keychain_id
-      [200, {}, {gateway_id: @gateway.id, last_keychain_id: @gateway.last_keychain_id}.to_json]
+      [200, {}, { gateway_id: @gateway.id, last_keychain_id: @gateway.last_keychain_id }.to_json]
     end
 
     def invoice
@@ -130,15 +119,30 @@ module StraightServer
         payment_request = Bip70::PaymentRequest.new(order: order).to_s
 
         headers = {
-          'Content-Type': 'application/bitcoin-paymentrequest',
-          'Content-Disposition': "inline; filename=i#{Time.now.to_i}.bitcoinpaymentrequest",
+          'Content-Type':              'application/bitcoin-paymentrequest',
+          'Content-Disposition':       "inline; filename=i#{Time.now.to_i}.bitcoinpaymentrequest",
           'Content-Transfer-Encoding': 'binary',
-          'Expires': '0',
-          'Cache-Control': 'must-revalidate, post-check=0, pre-check=0',
-          'Content-Length': payment_request.length.to_s
+          'Expires':                   '0',
+          'Cache-Control':             'must-revalidate, post-check=0, pre-check=0',
+          'Content-Length':            payment_request.length.to_s
         }
 
         [200, headers, payment_request]
+      end
+    end
+
+    def reprocess
+      validate_signature || throttle
+
+      if (order = find_order)
+        before = order.to_json
+        begin
+          order.reprocess!
+        rescue => ex
+          return [409, JSON_HEADER, %({"error":#{ex.message.inspect}})]
+        end
+        after = order.to_json
+        [200, JSON_HEADER, %({"before":#{before},"after":#{after}})]
       end
     end
 
@@ -156,37 +160,41 @@ module StraightServer
 
           case "#{@method} #{@env['REQUEST_PATH']}"
 
-            # POST /gateways/:gateway_id/orders
             # POST /gateways/:gateway_hashed_id/orders
             #
             when %r{\APOST /gateways/([^/]+)/orders\Z}
               create
 
-            # GET /gateways/:gateway_id/orders/:order_id
+            # GET /gateways/:gateway_hashed_id/orders/:order_id
             # GET /gateways/:gateway_hashed_id/orders/:order_payment_id
             #
             when %r{\AGET /gateways/([^/]+)/orders/([^/]+)\Z}
               show
 
-            # GET /gateways/:gateway_id/orders/:order_id/websocket
+            # GET /gateways/:gateway_hashed_id/orders/:order_id/websocket
             # GET /gateways/:gateway_hashed_id/orders/:order_payment_id/websocket
             #
             when %r{\AGET /gateways/([^/]+)/orders/([^/]+)/websocket\Z}
               websocket
 
-            # POST /gateways/:gateway_id/orders/:order_id/cancel
+            # POST /gateways/:gateway_hashed_id/orders/:order_id/cancel
             # POST /gateways/:gateway_hashed_id/orders/:order_payment_id/cancel
             #
             when %r{\APOST /gateways/([^/]+)/orders/([^/]+)/cancel\Z}
               cancel
 
-            # GET /gateways/:gateway_id/last_keychain_id
+            # POST /gateways/:gateway_hashed_id/orders/:order_id/reprocess
+            # POST /gateways/:gateway_hashed_id/orders/:order_payment_id/reprocess
+            #
+            when %r{\APOST /gateways/([^/]+)/orders/([^/]+)/reprocess\Z}
+              reprocess
+
             # GET /gateways/:gateway_hashed_id/last_keychain_id
             #
             when %r{\AGET /gateways/([^/]+)/last_keychain_id\Z}
               last_keychain_id
 
-            # GET /gateways/:gateway_id/orders/:order_id/invoice
+            # GET /gateways/:gateway_hashed_id/orders/:order_id/invoice
             # GET /gateways/:gateway_hashed_id/orders/:order_payment_id/invoice
             #
             when %r{\AGET /gateways/([^/]+)/orders/([^/]+)/invoice\Z}
@@ -213,6 +221,9 @@ module StraightServer
         message = "X-Signature is invalid: #{@env["#{HTTP_PREFIX}X_SIGNATURE"].inspect}"
         StraightServer.logger.debug "Gateway #{@gateway.id}, #{message}"
         [409, {}, message]
+      rescue Throttler::RequestDenied => ex
+        StraightServer.logger.debug ex.message
+        [429, {}, "Too many requests, please try again later"]
       end
 
       def find_order
@@ -228,6 +239,18 @@ module StraightServer
         o
       end
 
-  end
+      def validate_signature(if_unforced: true)
+        if @gateway.check_signature
+          SignatureValidator.new(@gateway, @env).validate!
+        elsif if_unforced
+          SignatureValidator.new(@gateway, @env).valid_signature?
+        end
+      end
 
+      def throttle
+        ip = @env['HTTP_X_FORWARDED_FOR'].to_s
+        ip = @env['REMOTE_ADDR'] if ip.empty?
+        Throttler.new(@gateway.id).check!(ip)
+      end
+  end
 end

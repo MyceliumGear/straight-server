@@ -73,31 +73,41 @@ module StraightServer
     # couldn't belong to that newer order (their block_height < order's block_height_created_at)
     # will be taken into account.
     def reprocess!
-      raise RuntimeError.new("Order is not in final state") if status < 2
+      raise "Order is not in final state" if status < 2
 
       confirmations_required = gateway.confirmations_required
 
       transactions = gateway.fetch_transactions_for(address)
-      transactions = Straight::Transaction.from_hashes transactions
+      transactions = Straight::Transaction.from_hashes(transactions)
       transactions.select! { |x| x.confirmations >= confirmations_required } if confirmations_required > 0
 
-      same_address_orders = Order.exclude(id: id).where(gateway_id: gateway.id, address: self.address)
+      same_address_orders = self.class.exclude(id: id).where(gateway_id: gateway_id, address: address)
       if same_address_orders.count > 0
-        minimum_disallowed_block_height = same_address_orders.select_map(:block_height_created_at).min
-        transactions.select! { |x| (x.block_height != -1) && (x.block_height < minimum_disallowed_block_height) }
+        sao_block_heights = same_address_orders.select_map(:block_height_created_at)
+        if sao_block_heights.index { |x| x.to_i <= 0 }
+          raise "Ambiguity detected: same-address order with undefined block_height_created_at"
+        end
+        if sao_block_heights.index { |x| x == block_height_created_at }
+          raise "Ambiguity detected: same-address order with the same block_height_created_at"
+        end
+        max_allowed_block_height = sao_block_heights.min
+        transactions.select! { |x| (x.block_height.to_i > 0) && (x.block_height <= max_allowed_block_height) }
       end
 
       result = get_transaction_status(transactions: transactions)
-      return if result[:status] == 0
+      return false if result[:status] == 0
       result[:status] = 3 if result[:status] == -3
 
-      if result[:status] != @status
+      if (result[:status] != @status) || (result[:amount_paid] != amount_paid)
+        @old_status = @status
         @status = self[:status] = result[:status]
         self.amount_paid = result[:amount_paid]
         self.accepted_transactions = result[:accepted_transactions]
         save
 
-        gateway.order_status_changed(self)
+        Thread.new do
+          gateway.order_status_changed(self)
+        end
       end
     end
 

@@ -70,6 +70,30 @@ RSpec.describe StraightServer::Order do
       expect(@order.accepted_transactions.length).to eq 2
     end
 
+    it "changes order's amount_paid and runs gateway callbacks if there are new transactions for order" do
+      expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
+        [{ tid: 'xxx1', total_amount: 7}],
+        [{ tid: 'xxx1', total_amount: 7}, { tid: 'xxx2', total_amount: 1}]
+      )
+
+      expect(@gateway).to receive(:order_status_changed).exactly(1).times.with(@order)
+
+      @order.reprocess!
+
+      expect(@order.status).to eq 3
+      expect(@order.amount_paid).to eq 7
+      expect(@order.accepted_transactions.length).to eq 1
+
+      expect(@gateway).to receive(:order_status_changed).exactly(1).times.with(@order)
+
+      @order.reprocess!
+
+      @order.reload
+      expect(@order.status).to eq 3
+      expect(@order.amount_paid).to eq 8
+      expect(@order.accepted_transactions.length).to eq 2
+    end
+
     it "counts only transactions with confirmations >= gateway's confirmations_required" do
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
         [{ tid: 'xxx1', total_amount: 3, confirmations: 1}, {tid: 'xxx2', total_amount: 7, confirmations: 2}]
@@ -86,6 +110,7 @@ RSpec.describe StraightServer::Order do
 
     it "does nothing if there aren't new transactions for order" do
       @order.instance_variable_set(:@status, 3)
+      @order.amount_paid = 5
 
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
         [{ tid: 'xxx1', total_amount: 5}]
@@ -107,7 +132,7 @@ RSpec.describe StraightServer::Order do
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
         [
           {tid: 'this_one_ok', total_amount: 3, confirmations: 2, block_height: @order.block_height_created_at + 1},
-          {tid: 'this_one_not_ok', total_amount: 7, confirmations: 2, block_height: another_order.block_height_created_at},
+          {tid: 'this_one_not_ok', total_amount: 7, confirmations: 2, block_height: another_order.block_height_created_at + 1},
           {tid: 'not_ok_too', total_amount: 7, confirmations: 2, block_height: -1}
         ]
       )
