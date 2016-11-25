@@ -30,11 +30,70 @@ RSpec.describe StraightServer::Order do
     StraightServer::GatewayModule.class_variable_set(:@@websockets, websockets)
   end
 
-  describe Straight::Order, '#reprocess!' do
-    before(:each) do
-      @order.amount = 10
-      @order.gateway = @gateway
-      @order.address = 'address'
+  describe StraightServer::Order, '#allowed_tx_block_height' do
+
+    before :each do
+      @sa_orders = double("same_address_orders")
+      allow(@order).to receive(:same_address_orders).and_return(@sa_orders)
+      @order.block_height_created_at = 20
+    end
+
+    it "raises AmbiguityError if block_height_created_at undefined" do
+      @order.block_height_created_at = nil
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "undefined block_height_created_at")
+
+      @order.block_height_created_at = 0
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "undefined block_height_created_at")
+
+      @order.block_height_created_at = -1
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "undefined block_height_created_at")
+    end
+
+    it "returns half-limited range if no same-address orders exist" do
+      expect(@sa_orders).to receive(:count).and_return(0)
+      expect(@order.allowed_tx_block_height).to eq(21..Float::INFINITY)
+    end
+
+    it "raises AmbiguityError if same-address order with undefined block_height_created_at exist" do
+      expect(@sa_orders).to receive(:count).and_return(2).exactly(3).times
+
+      expect(@sa_orders).to receive(:select_map).with(:block_height_created_at).and_return([nil, 21])
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "same-address order with undefined block_height_created_at")
+
+      expect(@sa_orders).to receive(:select_map).with(:block_height_created_at).and_return([21, 0])
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "same-address order with undefined block_height_created_at")
+
+      expect(@sa_orders).to receive(:select_map).with(:block_height_created_at).and_return([-1, 21])
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "same-address order with undefined block_height_created_at")
+    end
+
+    it "raises AmbiguityError if same-address order with identical block_height_created_at exist" do
+      expect(@sa_orders).to receive(:count).and_return(2)
+
+      expect(@sa_orders).to receive(:select_map).with(:block_height_created_at).and_return([20, 21])
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "same-address order with identical block_height_created_at")
+    end
+
+    it "raises AmbiguityError if same-address order with preceding block_height_created_at exist" do
+      expect(@sa_orders).to receive(:count).and_return(2)
+
+      expect(@sa_orders).to receive(:select_map).with(:block_height_created_at).and_return([19, 21])
+      expect { @order.allowed_tx_block_height }.to raise_error(described_class::AmbiguityError, "same-address order with preceding block_height_created_at")
+    end
+
+    it "returns limited range if newer same-address order exist" do
+      expect(@sa_orders).to receive(:count).and_return(1)
+      expect(@sa_orders).to receive(:select_map).with(:block_height_created_at).and_return([22, 21])
+      expect(@order.allowed_tx_block_height).to eq(21..21)
+    end
+  end
+
+  describe StraightServer::Order, '#reprocess!' do
+
+    before :each do
+      @order.amount                  = 10
+      @order.gateway                 = @gateway
+      @order.address                 = 'address'
       @order.block_height_created_at = 1234
       @order.instance_variable_set(:@status, 5)
 
@@ -43,16 +102,16 @@ RSpec.describe StraightServer::Order do
 
     it "raise exception non-finished orders" do
       @order.instance_variable_set(:@status, 1)
-      expect{ @order.reprocess! }.to raise_exception(RuntimeError)
+      expect { @order.reprocess! }.to raise_exception(RuntimeError)
     end
 
     it "changes expired order's status and runs gateway callbacks if there are new transactions for order" do
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
-        [{ tid: 'xxx1', total_amount: 9}],
-        [{ tid: 'xxx1', total_amount: 9}, {tid: 'xxx2', total_amount: 1}]
+        [{ tid: 'xxx1', total_amount: 9, block_height: 1235 }],
+        [{ tid: 'xxx1', total_amount: 9, block_height: 1235 }, { tid: 'xxx2', total_amount: 1, block_height: 1236 }]
       )
 
-      expect(@gateway).to receive(:order_status_changed).with(@order)
+      expect(@gateway).to receive(:order_status_changed).with(@order).exactly(1).times
 
       @order.reprocess!
 
@@ -60,7 +119,7 @@ RSpec.describe StraightServer::Order do
       expect(@order.amount_paid).to eq 9
       expect(@order.accepted_transactions.length).to eq 1
 
-      expect(@gateway).to receive(:order_status_changed).with(@order)
+      expect(@gateway).to receive(:order_status_changed).with(@order).exactly(1).times
 
       @order.reprocess!
 
@@ -72,11 +131,11 @@ RSpec.describe StraightServer::Order do
 
     it "changes order's amount_paid and runs gateway callbacks if there are new transactions for order" do
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
-        [{ tid: 'xxx1', total_amount: 7}],
-        [{ tid: 'xxx1', total_amount: 7}, { tid: 'xxx2', total_amount: 1}]
+        [{ tid: 'xxx1', total_amount: 7, block_height: 1235 }],
+        [{ tid: 'xxx1', total_amount: 7, block_height: 1235 }, { tid: 'xxx2', total_amount: 1, block_height: 1236 }]
       )
 
-      expect(@gateway).to receive(:order_status_changed).exactly(1).times.with(@order)
+      expect(@gateway).to receive(:order_status_changed).with(@order).exactly(1).times
 
       @order.reprocess!
 
@@ -84,7 +143,7 @@ RSpec.describe StraightServer::Order do
       expect(@order.amount_paid).to eq 7
       expect(@order.accepted_transactions.length).to eq 1
 
-      expect(@gateway).to receive(:order_status_changed).exactly(1).times.with(@order)
+      expect(@gateway).to receive(:order_status_changed).with(@order).exactly(1).times
 
       @order.reprocess!
 
@@ -96,10 +155,10 @@ RSpec.describe StraightServer::Order do
 
     it "counts only transactions with confirmations >= gateway's confirmations_required" do
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
-        [{ tid: 'xxx1', total_amount: 3, confirmations: 1}, {tid: 'xxx2', total_amount: 7, confirmations: 2}]
+        [{ tid: 'xxx1', total_amount: 3, block_height: 1235, confirmations: 1 }, { tid: 'xxx2', total_amount: 7, block_height: 1235, confirmations: 2 }]
       )
       expect(@gateway).to receive(:confirmations_required).and_return(2)
-      expect(@gateway).to receive(:order_status_changed).with(@order)
+      expect(@gateway).to receive(:order_status_changed).with(@order).exactly(1).times
 
       @order.reprocess!
 
@@ -113,31 +172,34 @@ RSpec.describe StraightServer::Order do
       @order.amount_paid = 5
 
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
-        [{ tid: 'xxx1', total_amount: 5}]
+        [{ tid: 'xxx1', total_amount: 5, block_height: 1235 }]
       )
-
       expect(@gateway).to_not receive(:order_status_changed)
 
       @order.reprocess!
     end
 
     it "ignores new transactions if they could belong to newer order with the same address" do
-      another_order = create(:order,
-        gateway_id: @gateway.id,
-        amount: 2,
-        address: @order.address,
+      another_order = create(
+        :order,
+        gateway_id:              @gateway.id,
+        amount:                  2,
+        address:                 @order.address,
         block_height_created_at: @order.block_height_created_at + 5
       )
 
+      expect(@order.same_address_orders.select_map(:id)).to eq([another_order.id])
+
       expect(@gateway).to receive(:fetch_transactions_for).with(@order.address).and_return(
         [
-          {tid: 'this_one_ok', total_amount: 3, confirmations: 2, block_height: @order.block_height_created_at + 1},
-          {tid: 'this_one_not_ok', total_amount: 7, confirmations: 2, block_height: another_order.block_height_created_at + 1},
-          {tid: 'not_ok_too', total_amount: 7, confirmations: 2, block_height: -1}
+          { tid: 'not_ok_1', total_amount: 10, confirmations: 8, block_height: @order.block_height_created_at },
+          { tid: 'ok_1', total_amount: 2, confirmations: 7, block_height: @order.block_height_created_at + 1 },
+          { tid: 'ok_2', total_amount: 1, confirmations: 3, block_height: another_order.block_height_created_at },
+          { tid: 'not_ok_2', total_amount: 7, confirmations: 2, block_height: another_order.block_height_created_at + 1 },
+          { tid: 'not_ok_3', total_amount: 7, confirmations: 0, block_height: -1 },
         ]
       )
-      expect(@gateway).to receive(:confirmations_required).and_return(2)
-      expect(@gateway).to receive(:order_status_changed).with(@order)
+      expect(@gateway).to receive(:order_status_changed).with(@order).exactly(1).times
 
       @order.reprocess!
 

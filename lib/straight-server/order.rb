@@ -19,6 +19,8 @@ module StraightServer
 
     attr_accessor :on_accepted_transactions_updated
 
+    AmbiguityError = Class.new(RuntimeError)
+
     plugin :after_initialize
     def after_initialize
       @status = self[:status] || 0
@@ -66,33 +68,23 @@ module StraightServer
       where(address: address).order(Sequel.desc(:reused)).limit(1).first
     end
 
-    # Reprocess expired order:
-    # — Order status will be set according to newly found transactions
-    # — Callback will run if status is actually changed
-    # If there is newer order with the same address, all and only transactions which
-    # couldn't belong to that newer order (their block_height < order's block_height_created_at)
-    # will be taken into account.
+    # Reprocess order:
+    # — Order status and amount_paid will be set according to newly found transactions
+    # — Callback will run if status or amount_paid actually changed
+    # If there is a newer order with the same address, only transactions which
+    # couldn't belong to that newer order (their block_height <= new order's block_height_created_at)
+    # will be taken into account. Reprocess is impossible if there's an older order with the same address.
     def reprocess!
       raise "Order is not in final state" if status < 2
 
       confirmations_required = gateway.confirmations_required
-
-      transactions = gateway.fetch_transactions_for(address)
-      transactions = Straight::Transaction.from_hashes(transactions)
-      transactions.select! { |x| x.confirmations >= confirmations_required } if confirmations_required > 0
-
-      same_address_orders = self.class.exclude(id: id).where(gateway_id: gateway_id, address: address)
-      if same_address_orders.count > 0
-        sao_block_heights = same_address_orders.select_map(:block_height_created_at)
-        if sao_block_heights.index { |x| x.to_i <= 0 }
-          raise "Ambiguity detected: same-address order with undefined block_height_created_at"
-        end
-        if sao_block_heights.index { |x| x == block_height_created_at }
-          raise "Ambiguity detected: same-address order with the same block_height_created_at"
-        end
-        max_allowed_block_height = sao_block_heights.min
-        transactions.select! { |x| (x.block_height.to_i > 0) && (x.block_height <= max_allowed_block_height) }
-      end
+      transactions           = Straight::Transaction.from_hashes(gateway.fetch_transactions_for(address))
+      allowed_block_height   = allowed_tx_block_height
+      transactions.select! { |x|
+        (x.block_height.to_i > 0) &&
+          allowed_block_height.include?(x.block_height) &&
+          (confirmations_required > 0 ? x.confirmations >= confirmations_required : true)
+      }
 
       result = get_transaction_status(transactions: transactions)
       return false if result[:status] == 0
@@ -109,6 +101,34 @@ module StraightServer
           gateway.order_status_changed(self)
         end
       end
+    end
+
+    def same_address_orders
+      self.class.exclude(id: id).where(gateway_id: gateway_id, address: address)
+    end
+
+    def allowed_tx_block_height
+      if block_height_created_at.to_i <= 0
+        raise AmbiguityError, "undefined block_height_created_at"
+      end
+      minimum = block_height_created_at + 1
+      maximum =
+        if same_address_orders.count > 0
+          sao_block_heights = same_address_orders.select_map(:block_height_created_at)
+          sao_block_heights.each do |x|
+            if x.to_i <= 0
+              raise AmbiguityError, "same-address order with undefined block_height_created_at"
+            elsif x == block_height_created_at
+              raise AmbiguityError, "same-address order with identical block_height_created_at"
+            elsif x < block_height_created_at
+              raise AmbiguityError, "same-address order with preceding block_height_created_at"
+            end
+          end
+          sao_block_heights.min
+        else
+          Float::INFINITY
+        end
+      minimum .. maximum
     end
 
     # This method is called from the Straight::OrderModule::Prependable
