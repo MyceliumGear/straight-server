@@ -85,7 +85,7 @@ RSpec.describe StraightServer::Initializer do
   # Cleans up files created by #create_config_files defined in let:
   def remove_tmp_dir
     if Dir.exist?(File.expand_path('../tmp/', File.dirname(__FILE__)))
-      FileUtils.rm_r(File.expand_path('../tmp/', File.dirname(__FILE__)))
+      FileUtils.rm_rf(File.expand_path('../tmp/', File.dirname(__FILE__)))
     end      
   end
 

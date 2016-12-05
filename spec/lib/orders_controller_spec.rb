@@ -359,6 +359,38 @@ RSpec.describe StraightServer::OrdersController do
     end
   end
 
+  describe "reprocess action" do
+    let(:gateway) { StraightServer::GatewayOnConfig.find_by_id(1) }
+    let(:order) { create(:order, gateway_id: gateway.id) }
+
+    it "requires signature" do
+      send_request "POST", "/gateways/#{gateway.id}/orders/#{order.id}/reprocess"
+      expect(response[0]).to eq(409)
+      expect(response[2]).to eq("X-Signature is invalid: nil")
+    end
+
+    context "signed request" do
+
+      before :each do
+        allow_any_instance_of(StraightServer::SignatureValidator).to receive(:validate!).and_return(true)
+      end
+
+      it "does not reprocess new order" do
+        send_request "POST", "/gateways/#{gateway.id}/orders/#{order.id}/reprocess"
+        expect(response[0]).to eq(409)
+        expect(response[2]).to eq(%({"error":"Order is not in final state"}))
+      end
+
+      it "returns order before and after reprocess" do
+        allow_any_instance_of(StraightServer::Order).to receive(:reprocess!).and_return(nil)
+
+        send_request "POST", "/gateways/#{gateway.id}/orders/#{order.id}/reprocess"
+        expect(response[0]).to eq(200)
+        expect(response[2]).to eq(%({"before":#{order.to_json},"after":#{order.to_json}}))
+      end
+    end
+  end
+
   def send_request(method, path, params={})
     env = Hashie::Mash.new('REQUEST_METHOD' => method, 'REQUEST_PATH' => path, 'params' => params)
     @controller = StraightServer::OrdersController.new(env)

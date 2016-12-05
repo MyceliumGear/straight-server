@@ -1,12 +1,19 @@
 module StraightServer
   class Throttler
 
+    RequestDenied = Class.new(RuntimeError)
+
     def initialize(gateway_id)
       @id              = "gateway_#{gateway_id}"
       @redis           = StraightServer.redis_connection
       @limit           = Config[:'throttle.requests_limit'].to_i
       @period          = Config[:'throttle.period'].to_i # in seconds
       @ip_ban_duration = Config[:'throttle.ip_ban_duration'].to_i # in seconds
+    end
+
+    def check!(ip)
+      raise RequestDenied.new("Request to #{@id} from #{ip} denied by throttler") if deny?(ip)
+      false
     end
 
     # @param [String] ip address
