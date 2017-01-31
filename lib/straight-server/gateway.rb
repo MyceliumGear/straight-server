@@ -124,11 +124,13 @@ module StraightServer
 
       StraightServer.logger.info "Creating new order with attrs: #{attrs}"
 
-      # If we decide to reuse the order, we simply need to supply the
-      # keychain_id that was used in the order we're reusing.
-      # The address will be generated correctly.
-      reused_order = find_reusable_order
-      attrs[:keychain_id] = reused_order.keychain_id if reused_order
+      if attrs[:keychain_id].to_s.empty?
+        # If we decide to reuse the order, we simply need to supply the
+        # keychain_id that was used in the order we're reusing.
+        # The address will be generated correctly.
+        reused_order = find_reusable_order
+        attrs[:keychain_id] = reused_order.keychain_id if reused_order
+      end
       attrs[:keychain_id] = nil if attrs[:keychain_id] == ''
 
       order = new_order(
