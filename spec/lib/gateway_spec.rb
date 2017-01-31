@@ -49,7 +49,7 @@ RSpec.describe StraightServer::Gateway do
   end
 
   it "only warns about an invalid Bitcoin address, but doesn't fail" do
-    expect(StraightServer.logger).to receive(:warn) 
+    expect(StraightServer.logger).to receive(:warn)
     allow_any_instance_of(Straight::BlockchainAdaptersDispatcher).to receive(:run_requests).
       and_raise(Straight::Blockchain::Adapter::BitcoinAddressInvalid)
     expect(@gateway.fetch_transactions_for('12X3JTpcGPS1GXmuJn9gT3gspP6YFsFT6W')).to eq([])
@@ -90,6 +90,15 @@ RSpec.describe StraightServer::Gateway do
       expect(order.keychain_id).to eq(reused_order.keychain_id)
       expect(order.address).to     eq(@gateway.address_provider.new_address(keychain_id: reused_order.keychain_id))
       expect(order.reused).to      eq(1)
+    end
+
+    it "does not reuse address if keychain_id is provided manually" do
+      reused_order = @expired_orders_1.last
+      keychain_id  = reused_order.keychain_id + 50
+      order        = @gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: keychain_id)
+      expect(order.keychain_id).to eq keychain_id
+      expect(order.address).to eq @gateway.address_provider.new_address(keychain_id: keychain_id)
+      expect(order.reused).to eq 0
     end
 
     it "doesn't increment last_keychain_id if order is reused" do
@@ -378,7 +387,7 @@ RSpec.describe StraightServer::Gateway do
       before(:each) do
         @gateway.test_pubkey = "txpub"
       end
-      
+
       it "not activate after created" do
         @gateway.save
         expect(@gateway.test_mode).to be false
@@ -421,7 +430,7 @@ RSpec.describe StraightServer::Gateway do
         @gateway.refresh
         expect(@gateway.test_mode).to be true
       end
-      
+
       it "field updates in mass assigment" do
         @gateway.save
         fields = {test_mode: true}
@@ -440,7 +449,7 @@ RSpec.describe StraightServer::Gateway do
         @gateway.create_order(amount: 1)
         expect(StraightServer.db_connection[:gateways][:name => 'default'][:test_last_keychain_id]).to eq(1)
       end
-      
+
       it "validate that test public key is provided when saving with test mode flag" do
         @gateway = StraightServer::GatewayOnDB.new(
           confirmations_required: 0,
