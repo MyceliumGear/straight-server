@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe StraightServer::Bip70::PaymentRequest do
 
   let(:gateway) { StraightServer::GatewayOnConfig.find_by_id(1) }
-  let(:order) { create(:order, gateway_id: gateway.id, amount: 1000) }
+  let(:order) { create(:order, keychain_id: 1, gateway_id: gateway.id, amount: 1000) }
 
   it 'create payment request for mainnet' do
     gateway = StraightServer::GatewayOnConfig.find_by_id(2)
@@ -41,7 +41,7 @@ RSpec.describe StraightServer::Bip70::PaymentRequest do
     script_string = BTC::Script.new(data: output.script).to_s
 
     expect(output.amount).to eq(1000)
-    expect(script_string).to eq('OP_DUP OP_HASH160 fa5f4aecd0034f5f0873868ba788ae09df40a7f7 OP_EQUALVERIFY OP_CHECKSIG')
+    expect(script_string).to eq('OP_DUP OP_HASH160 d58f44fcb88037edcf9add05e045c0eec493c035 OP_EQUALVERIFY OP_CHECKSIG')
   end
 
   it "return 'no private key was found' error" do
@@ -79,7 +79,7 @@ RSpec.describe StraightServer::Bip70::PaymentRequest do
     script_string = BTC::Script.new(data: output.script).to_s
 
     expect(output.amount).to eq(1000)
-    expect(script_string).to eq('OP_DUP OP_HASH160 fa5f4aecd0034f5f0873868ba788ae09df40a7f7 OP_EQUALVERIFY OP_CHECKSIG')
+    expect(script_string).to eq('OP_DUP OP_HASH160 d58f44fcb88037edcf9add05e045c0eec493c035 OP_EQUALVERIFY OP_CHECKSIG')
 
     StraightServer::Config.ssl_certificate_path = ssl_certificate_path
   end

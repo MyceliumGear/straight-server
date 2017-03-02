@@ -4,24 +4,17 @@ require 'spec_helper'
 RSpec.describe StraightServer::Order do
 
   before(:each) do
-    @gateway = double("Straight Gateway mock")
-    allow(@gateway).to receive(:id).and_return(1)
-    allow(@gateway).to receive(:active).and_return(true)
-    allow(@gateway).to receive(:order_status_changed)
-    allow(@gateway).to receive(:test_mode).and_return(false)
-    allow(@gateway).to receive(:donation_mode).with(no_args).and_return(false)
+    @gateway = StraightServer::GatewayOnConfig.find_by_id(1)
     allow(@gateway).to receive(:save)
+    allow(@gateway).to receive(:order_status_changed)
     allow(@gateway).to receive(:increment_order_counter!)
+    allow(@gateway).to receive(:test_mode).and_return(false)
     allow(@gateway).to receive(:current_exchange_rate).and_return(111)
     allow(@gateway).to receive(:default_currency).and_return('USD')
     allow(@gateway).to receive(:last_keychain_id).and_return(222)
-    @order = create(:order, gateway_id: @gateway.id)
-    allow(@gateway).to receive(:fetch_transactions_for).with(anything).and_return([])
-    allow(@gateway).to receive(:order_status_changed).with(anything)
-    allow(@gateway).to receive(:sign_with_secret).with(anything).and_return("1", "2", "3")
-    allow(@gateway).to receive(:address_provider).
-      and_return(double("address_provider", takes_fees?: false))
+    allow(@gateway).to receive(:fetch_transactions_for).and_return([])
     allow(StraightServer::Gateway).to receive(:find_by_id).and_return(@gateway)
+    @order = create(:order, gateway_id: @gateway.id)
 
     websockets = {}
     StraightServer::GatewayOnConfig.class_variable_get(:@@gateways).each do |g|
@@ -265,7 +258,9 @@ RSpec.describe StraightServer::Order do
 
   context "when the gateway address provider takes fees" do
     it "doesn't add exchange rate at the moment of purchase to the data hash" do
-      allow(@gateway.address_provider).to receive(:takes_fees?).and_return(true)
+      address_provider = double("address_provider", takes_fees?: true)
+      allow(address_provider).to receive(:new_address).and_return('testaddress')
+      allow(@gateway).to receive(:address_provider).and_return(address_provider)
       order = create(:order, gateway_id: @gateway.id)
       expect(order.data).to be_nil
     end
@@ -307,14 +302,14 @@ RSpec.describe StraightServer::Order do
   describe "DB interaction" do
 
     it "saves a new order into the database" do
-      expect(StraightServer.db_connection[:orders][:keychain_id => @order.id]).not_to be_nil
+      expect(StraightServer.db_connection[:orders][id: @order.id]).not_to be_nil
     end
 
     it "updates an existing order" do
       allow(@order).to receive(:gateway).and_return(@gateway)
-      expect(StraightServer.db_connection[:orders][:keychain_id => @order.id][:status]).to eq(0)
+      expect(StraightServer.db_connection[:orders][id: @order.id][:status]).to eq(0)
       @order.status = 1
-      expect(StraightServer.db_connection[:orders][:keychain_id => @order.id][:status]).to eq(1)
+      expect(StraightServer.db_connection[:orders][id: @order.id][:status]).to eq(1)
     end
 
     it "finds first order in the database by id" do
@@ -358,6 +353,15 @@ RSpec.describe StraightServer::Order do
         expect( -> { create(:order, description: ("text" * 100)) }).to raise_error(Sequel::ValidationFailed)
       end
 
+      it "doesn't save order if same-address order is active" do
+        expect( -> { create(:order, keychain_id: @order.keychain_id, gateway_id: @gateway.id) }).to raise_error(Sequel::ValidationFailed)
+
+        @order.this.update(status: 1)
+        expect( -> { create(:order, keychain_id: @order.keychain_id, gateway_id: @gateway.id) }).to raise_error(Sequel::ValidationFailed)
+
+        @order.this.update(status: 2)
+        expect( -> { create(:order, keychain_id: @order.keychain_id, gateway_id: @gateway.id) }).not_to raise_error
+      end
     end
 
     describe "accepted transactions" do
