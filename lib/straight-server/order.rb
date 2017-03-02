@@ -229,6 +229,7 @@ module StraightServer
       errors.add(:gateway,     "is inactive, cannot create order for inactive gateway") if !gateway.active && self.new?
       validates_unique :id
       validates_presence [:address, :keychain_id, :gateway_id, :amount]
+      errors.add(:address, "already in use") if (self[:status].to_i < 2) && (same_address_orders.where('status < 2').count > 0)
     end
 
     def to_http_params
