@@ -1,4 +1,5 @@
 require 'cgi'
+require 'concurrent/map'
 
 module StraightServer
 
@@ -7,6 +8,7 @@ module StraightServer
   module GatewayModule
 
     @@websockets = {}
+    @@order_creation_mutexes = Concurrent::Map.new
 
     CALLBACK_URL_ATTEMPT_TIMEFRAME = 3600 # seconds
 
@@ -113,9 +115,15 @@ module StraightServer
       return []
     end
 
+    def create_order(attributes = {})
+      order_creation_mutex.synchronize do
+        create_order_concurrently(attributes)
+      end
+    end
+
     # Creates a new order and saves into the DB. Checks if the MD5 hash
     # is correct first.
-    def create_order(attributes = {})
+    def create_order_concurrently(attributes = {})
       # TODO: don't use hash attributes as an internal changeable variable.
       # It also changes in the function where it was called.
       attrs = attributes.dup
@@ -161,6 +169,17 @@ module StraightServer
       StraightServer.insight_client.add_address(order.address) { |data| order.set_data_from_ws(data) } if StraightServer.insight_client
       StraightServer.logger.info "Order #{order.id} created: #{order.to_h}"
       order
+    end
+
+    # each gateway has its own mutex for preventing concurrent order creation
+    # currently order validation, address reuse and last_keychain_id update seem to be prone to race conditions
+    def order_creation_mutex
+      result = @@order_creation_mutexes[id]
+      unless result
+        @@order_creation_mutexes.put_if_absent(id, ::Mutex.new)
+        result = @@order_creation_mutexes[id]
+      end
+      result
     end
 
     def get_next_last_keychain_id
