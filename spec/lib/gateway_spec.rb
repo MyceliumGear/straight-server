@@ -41,11 +41,11 @@ RSpec.describe StraightServer::Gateway do
   end
 
   it "updates last_keychain_id to the new value provided in keychain_id if it's larger than the last_keychain_id" do
-    @gateway2.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 100)
+    @gateway2.create_order(amount: 2252, currency: 'BTC', keychain_id: 100)
     expect(@gateway2.last_keychain_id).to eq(100)
-    @gateway2.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 150)
+    @gateway2.create_order(amount: 2252, currency: 'BTC', keychain_id: 150)
     expect(@gateway2.last_keychain_id).to eq(150)
-    @gateway2.create_order(amount: 2252.706, currency: 'BTC', keychain_id: 50)
+    @gateway2.create_order(amount: 2252, currency: 'BTC', keychain_id: 50)
   end
 
   it "only warns about an invalid Bitcoin address, but doesn't fail" do
@@ -55,76 +55,76 @@ RSpec.describe StraightServer::Gateway do
     expect(@gateway.fetch_transactions_for('12X3JTpcGPS1GXmuJn9gT3gspP6YFsFT6W')).to eq([])
   end
 
-  context "reusing addresses" do
-
-    # Config.reuse_address_orders_threshold for the test env is 5
-
-    before(:each) do
-      @gateway = StraightServer::GatewayOnConfig.find_by_id(2)
-      allow(@gateway).to receive(:order_status_changed).with(anything).and_return([])
-      allow(@gateway).to receive(:fetch_transactions_for).with(anything).and_return([])
-      create_list(:order, 4, status: StraightServer::Order::STATUSES[:expired], gateway_id: @gateway.id)
-      create_list(:order, 2, status: StraightServer::Order::STATUSES[:paid],    gateway_id: @gateway.id)
-      @expired_orders_1 = create_list(:order, 5, status: StraightServer::Order::STATUSES[:expired], gateway_id: @gateway.id)
-      @expired_orders_2 = create_list(:order, 2, status: StraightServer::Order::STATUSES[:expired], gateway_id: @gateway.id)
-    end
-
-    it "finds all expired orders that follow in a row" do
-      expect(@gateway.send(:find_expired_orders_row).size).to eq(5)
-      expect(@gateway.send(:find_expired_orders_row).map(&:id)).to     include(*@expired_orders_1.map(&:id))
-      expect(@gateway.send(:find_expired_orders_row).map(&:id)).not_to include(*@expired_orders_2.map(&:id))
-    end
-
-    it "picks an expired order which address is going to be reused" do
-      expect(@gateway.find_reusable_order.id).to eq(@expired_orders_1.last.id)
-    end
-
-    it "picks an expired order which address is going to be reused only when this address received no transactions" do
-      allow(@gateway).to receive(:fetch_transactions_for).with(@expired_orders_1.last.address).and_return(['transaction'])
-      expect(@gateway.find_reusable_order).to eq(nil)
-    end
-
-    it "creates a new order with a reused address" do
-      reused_order = @expired_orders_1.last
-      order        = @gateway.create_order(amount: 2252.706, currency: 'BTC')
-      expect(order.keychain_id).to eq(reused_order.keychain_id)
-      expect(order.address).to     eq(@gateway.address_provider.new_address(keychain_id: reused_order.keychain_id))
-      expect(order.reused).to      eq(1)
-    end
-
-    it "does not reuse address if keychain_id is provided manually" do
-      reused_order = @expired_orders_1.last
-      keychain_id  = reused_order.keychain_id + 50
-      order        = @gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: keychain_id)
-      expect(order.keychain_id).to eq keychain_id
-      expect(order.address).to eq @gateway.address_provider.new_address(keychain_id: keychain_id)
-      expect(order.reused).to eq 0
-    end
-
-    it "doesn't increment last_keychain_id if order is reused" do
-      last_keychain_id = @gateway.last_keychain_id
-      order = @gateway.create_order(amount: 2252.706, currency: 'BTC')
-      expect(@gateway.last_keychain_id).to eq(last_keychain_id)
-
-      order.status = StraightServer::Order::STATUSES[:paid]
-      order.save
-      order_2 = @gateway.create_order(amount: 2252.706, currency: 'BTC')
-      expect(@gateway.last_keychain_id).to eq(last_keychain_id+1)
-    end
-
-    it "after the reused order was paid, gives next order a new keychain_id" do
-      order = @gateway.create_order(amount: 2252.706, currency: 'BTC')
-      order.status = StraightServer::Order::STATUSES[:expired]
-      order.save
-      expect(order.keychain_id).to eq(@expired_orders_1.last.keychain_id)
-
-      order = @gateway.create_order(amount: 2252.706, currency: 'BTC')
-      order.status = StraightServer::Order::STATUSES[:paid]
-      order.save
-      expect(@gateway.send(:find_expired_orders_row).map(&:id)).to be_empty
-    end
-
-  end
+  # context "reusing addresses" do
+  #
+  #   # Config.reuse_address_orders_threshold for the test env is 5
+  #
+  #   before(:each) do
+  #     @gateway = StraightServer::GatewayOnConfig.find_by_id(2)
+  #     allow(@gateway).to receive(:order_status_changed).with(anything).and_return([])
+  #     allow(@gateway).to receive(:fetch_transactions_for).with(anything).and_return([])
+  #     create_list(:order, 4, status: StraightServer::Order::STATUSES[:expired], gateway_id: @gateway.id)
+  #     create_list(:order, 2, status: StraightServer::Order::STATUSES[:paid],    gateway_id: @gateway.id)
+  #     @expired_orders_1 = create_list(:order, 5, status: StraightServer::Order::STATUSES[:expired], gateway_id: @gateway.id)
+  #     @expired_orders_2 = create_list(:order, 2, status: StraightServer::Order::STATUSES[:expired], gateway_id: @gateway.id)
+  #   end
+  #
+  #   it "finds all expired orders that follow in a row" do
+  #     expect(@gateway.send(:find_expired_orders_row).size).to eq(5)
+  #     expect(@gateway.send(:find_expired_orders_row).map(&:id)).to     include(*@expired_orders_1.map(&:id))
+  #     expect(@gateway.send(:find_expired_orders_row).map(&:id)).not_to include(*@expired_orders_2.map(&:id))
+  #   end
+  #
+  #   it "picks an expired order which address is going to be reused" do
+  #     expect(@gateway.find_reusable_order.id).to eq(@expired_orders_1.last.id)
+  #   end
+  #
+  #   it "picks an expired order which address is going to be reused only when this address received no transactions" do
+  #     allow(@gateway).to receive(:fetch_transactions_for).with(@expired_orders_1.last.address).and_return(['transaction'])
+  #     expect(@gateway.find_reusable_order).to eq(nil)
+  #   end
+  #
+  #   it "creates a new order with a reused address" do
+  #     reused_order = @expired_orders_1.last
+  #     order        = @gateway.create_order(amount: 2252.706, currency: 'BTC')
+  #     expect(order.keychain_id).to eq(reused_order.keychain_id)
+  #     expect(order.address).to     eq(@gateway.address_provider.new_address(keychain_id: reused_order.keychain_id))
+  #     expect(order.reused).to      eq(1)
+  #   end
+  #
+  #   it "does not reuse address if keychain_id is provided manually" do
+  #     reused_order = @expired_orders_1.last
+  #     keychain_id  = reused_order.keychain_id + 50
+  #     order        = @gateway.create_order(amount: 2252.706, currency: 'BTC', keychain_id: keychain_id)
+  #     expect(order.keychain_id).to eq keychain_id
+  #     expect(order.address).to eq @gateway.address_provider.new_address(keychain_id: keychain_id)
+  #     expect(order.reused).to eq 0
+  #   end
+  #
+  #   it "doesn't increment last_keychain_id if order is reused" do
+  #     last_keychain_id = @gateway.last_keychain_id
+  #     order = @gateway.create_order(amount: 2252.706, currency: 'BTC')
+  #     expect(@gateway.last_keychain_id).to eq(last_keychain_id)
+  #
+  #     order.status = StraightServer::Order::STATUSES[:paid]
+  #     order.save
+  #     order_2 = @gateway.create_order(amount: 2252.706, currency: 'BTC')
+  #     expect(@gateway.last_keychain_id).to eq(last_keychain_id+1)
+  #   end
+  #
+  #   it "after the reused order was paid, gives next order a new keychain_id" do
+  #     order = @gateway.create_order(amount: 2252.706, currency: 'BTC')
+  #     order.status = StraightServer::Order::STATUSES[:expired]
+  #     order.save
+  #     expect(order.keychain_id).to eq(@expired_orders_1.last.keychain_id)
+  #
+  #     order = @gateway.create_order(amount: 2252.706, currency: 'BTC')
+  #     order.status = StraightServer::Order::STATUSES[:paid]
+  #     order.save
+  #     expect(@gateway.send(:find_expired_orders_row).map(&:id)).to be_empty
+  #   end
+  #
+  # end
 
   context "callback url" do
 
