@@ -277,6 +277,7 @@ module StraightServer
     #
     # Also, see comments for #find_expired_orders_row method.
     def find_reusable_order
+      return # FIXME: currently it may return address which is being used by other active order
       expired_orders = find_expired_orders_row
       if expired_orders.size >= Config.reuse_address_orders_threshold &&
       fetch_transactions_for(expired_orders.last.address).empty?
