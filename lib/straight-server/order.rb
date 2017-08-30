@@ -201,6 +201,8 @@ module StraightServer
     def save(*)
       super # calling Sequel::Model save
       @status_changed = false
+    rescue Sequel::PoolTimeout
+      retry
     end
 
     def to_h
