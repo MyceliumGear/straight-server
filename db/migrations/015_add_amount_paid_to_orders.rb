@@ -1,7 +1,7 @@
 Sequel.migration do
 
   up do
-    add_column :orders, :amount_paid, Bignum
+    add_column :orders, :amount_paid, :Bignum
   end
 
   down do
