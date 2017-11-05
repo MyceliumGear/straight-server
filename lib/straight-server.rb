@@ -11,6 +11,7 @@ require 'straight'
 require 'socket.io-client-simple'
 
 Sequel.extension :migration
+Sequel.default_timezone = :utc
 
 module StraightServer
 
